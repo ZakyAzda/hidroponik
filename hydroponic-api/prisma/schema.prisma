@@ -1,0 +1,192 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+// =================== PENGGUNA & KELENGKAPANNYA ===================
+
+model User {
+  id                Int                 @id @default(autoincrement())
+  email             String              @unique
+  name              String
+  password          String
+  role              UserRole            @default(CUSTOMER)
+  createdAt         DateTime            @default(now())
+
+  // Relasi: Satu pengguna punya banyak item ini
+  addresses         Address[]
+  orders            Order[]
+  serviceBookings   ServiceBooking[]
+  reviews           Review[]
+  articles          Article[]
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+model Address {
+  id            Int     @id @default(autoincrement())
+  label         String  // Contoh: "Rumah", "Kantor"
+  recipientName String
+  phoneNumber   String
+  fullAddress   String  @db.Text
+  isPrimary     Boolean @default(false)
+
+  // Foreign Key ke User
+  userId        Int
+  user          User    @relation(fields: [userId], references: [id])
+}
+
+
+// =================== PRODUK & KATEGORI (Alat & Sayuran) ===================
+
+model ProductCategory {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  products  Product[]
+}
+
+model Product {
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String?         @db.Text
+  price         Int
+  stock         Int             @default(0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Foreign Key ke ProductCategory
+  categoryId    Int
+  category      ProductCategory @relation(fields: [categoryId], references: [id])
+  
+  // Relasi: Satu produk punya banyak item ini
+  orderItems    OrderItem[]
+  reviews       Review[]
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int      // Rating bintang dari 1 sampai 5
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  
+  // Foreign Keys
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+
+// =================== TRANSAKSI (Pesanan, Jasa, Pembayaran) ===================
+
+model Order {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  user            User      @relation(fields: [userId], references: [id])
+  totalAmount     Int       // <-- PASTIKAN BARIS INI ADA
+  status          String    @default("PENDING")
+  createdAt       DateTime  @default(now())
+
+  // Relasi
+  items           OrderItem[]
+  payment         Payment?
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  price     Int     // Harga produk saat dibeli (untuk arsip)
+  
+  // Foreign Keys
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Service {
+  id              Int               @id @default(autoincrement())
+  name            String
+  description     String?           @db.Text
+  price           Int
+  type            ServiceType       // Label: INSTALLATION atau TRAINING
+
+  // Relasi
+  bookings        ServiceBooking[]
+}
+
+enum ServiceType {
+  INSTALLATION
+  TRAINING
+}
+
+model ServiceBooking {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  serviceId     Int
+  // UBAH BARIS DI BAWAH INI
+  service       Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  // AKHIR PERUBAHAN
+  scheduledDate DateTime
+  status        String   @default("REQUESTED")
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  payment       Payment?
+}
+
+model Payment {
+  id               Int           @id @default(autoincrement())
+  amount           Int
+  status           PaymentStatus @default(PENDING)
+  method           PaymentMethod
+  transactionId    String?       @unique // ID dari payment gateway (Midtrans, dll.)
+  paymentDate      DateTime?
+  createdAt        DateTime      @default(now())
+
+  // Foreign Key (satu pembayaran hanya untuk satu item)
+  orderId          Int?          @unique
+  order            Order?        @relation(fields: [orderId], references: [id])
+  serviceBookingId Int?          @unique
+  serviceBooking   ServiceBooking? @relation(fields: [serviceBookingId], references: [id])
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  GOPAY
+  OVO
+}
+
+
+// =================== KONTEN & EDUKASI ===================
+
+model Article {
+  id          Int       @id @default(autoincrement())
+  title       String    @unique
+  content     String    @db.Text
+  imageUrl    String?   // Foto/gambar utama artikel
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  // Foreign Key ke User (Admin)
+  authorId    Int
+  author      User      @relation(fields: [authorId], references: [id])
+}
