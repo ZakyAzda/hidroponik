@@ -1,0 +1,18 @@
+# File log dan dependensi sistem operasi
+.DS_Store
+npm-debug.log*
+
+# Backend - hydroponic-api
+/hydroponic-api/node_modules
+/hydroponic-api/dist
+/hydroponic-api/.env
+
+# Frontend - hydroponik-admin
+/hydroponik-admin/node_modules
+/hydroponik-admin/.next
+/hydroponik-admin/out
+/hydroponik-admin/.env
+/hydroponik-admin/.env.local
+/hydroponik-admin/.env.development.local
+/hydroponik-admin/.env.test.local
+/hydroponik-admin/.env.production.local
