@@ -118,4 +118,30 @@ export class OrdersService {
     await this.findOneForUser(id, userId);
     return this.prisma.order.delete({ where: { id } });
   }
+findAllForAdmin(categoryName?: string) {
+    return this.prisma.order.findMany({
+      where: categoryName ? {
+        items: {
+          some: {
+            product: {
+              category: {
+                name: categoryName // Filter berdasarkan nama kategori produk
+              }
+            }
+          }
+        }
+      } : {},
+      include: {
+        user: true,
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+}
 }

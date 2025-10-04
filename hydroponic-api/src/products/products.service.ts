@@ -7,8 +7,11 @@ import { UpdateProductDto } from './dto/update-product.dto';
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
-  findAll() {
-    return this.prisma.product.findMany();
+  // READ: Mengambil semua produk (dengan filter kategori opsional)
+  findAll(categoryId?: number) {
+    return this.prisma.product.findMany({
+      where: categoryId ? { categoryId: categoryId } : {},
+    });
   }
 
   findOne(id: number) {

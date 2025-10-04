@@ -3,6 +3,7 @@ import { OrdersService } from './orders.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { Query } from '@nestjs/common';
 
 
 @Controller('orders')
@@ -44,5 +45,11 @@ export class OrdersController {
   remove(@Req() req, @Param('id', ParseIntPipe) id: number) {
     const userId = req.user.sub;
     return this.ordersService.remove(id, userId);
+  }
+
+  @Get('admin/all')
+  @UseGuards(AuthGuard)
+  findAllForAdmin(@Query('category') categoryName?: string) {
+    return this.ordersService.findAllForAdmin(categoryName);
   }
 }
