@@ -1,4 +1,3 @@
-// src/services/services.controller.ts
 import {
   Controller,
   Get,
@@ -8,6 +7,7 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { ServicesService } from './services.service';
 import { CreateServiceDto } from './dto/create-service.dto';
@@ -22,9 +22,9 @@ export class ServicesController {
     return this.servicesService.create(createServiceDto);
   }
 
-  @Get()
-  findAll() {
-    return this.servicesService.findAll();
+   @Get()
+  findAll(@Query('categoryId', new ParseIntPipe({ optional: true })) categoryId?: number) {
+    return this.servicesService.findAll(categoryId);
   }
 
   @Get(':id')

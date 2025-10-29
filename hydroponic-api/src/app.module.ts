@@ -11,9 +11,11 @@ import { ServicesModule } from './services/services.module';
 import { ServiceBookingsModule } from './service-bookings/service-bookings.module';
 import { OrdersModule } from './orders/orders.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ServiceCategoriesModule } from './service-categories/service-categories.module';
+import { ArticlesModule } from './articles/articles.module';
 
 @Module({
-  imports: [ProductsModule, ProductCategoriesModule, AuthModule, UsersModule, ServicesModule, ServiceBookingsModule, OrdersModule, DashboardModule],
+  imports: [ProductsModule, ProductCategoriesModule, AuthModule, UsersModule, ServicesModule, ServiceBookingsModule, OrdersModule, DashboardModule, ServiceCategoriesModule, ArticlesModule],
   controllers: [AppController],
   providers: [AppService, PrismaService], // <-- Tambahkan PrismaService
   exports: [PrismaService], // <-- Ekspor agar bisa dipakai modul lain

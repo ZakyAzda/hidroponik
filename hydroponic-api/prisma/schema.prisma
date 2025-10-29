@@ -116,20 +116,27 @@ model OrderItem {
   product   Product @relation(fields: [productId], references: [id])
 }
 
+// BUAT MODEL BARU INI
+model ServiceCategory {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique // Contoh: "Jasa Instalasi", "Jasa Pelatihan"
+  services  Service[]
+}
+
 model Service {
   id              Int               @id @default(autoincrement())
   name            String
   description     String?           @db.Text
   price           Int
-  type            ServiceType       // Label: INSTALLATION atau TRAINING
+  
+  // HAPUS BARIS 'type' YANG LAMA
+  // type            ServiceType
 
-  // Relasi
+  // TAMBAHKAN RELASI KE ServiceCategory
+  categoryId      Int
+  category        ServiceCategory   @relation(fields: [categoryId], references: [id])
+
   bookings        ServiceBooking[]
-}
-
-enum ServiceType {
-  INSTALLATION
-  TRAINING
 }
 
 model ServiceBooking {

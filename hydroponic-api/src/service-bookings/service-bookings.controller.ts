@@ -1,10 +1,20 @@
-// src/service-bookings/service-bookings.controller.ts
-import { Controller, Post,Patch, Get, Body, UseGuards, Req, Param, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Patch,
+  Get,
+  Body,
+  UseGuards,
+  Req,
+  Param,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { ServiceBookingsService } from './service-bookings.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CreateServiceBookingDto } from './dto/create-service-booking.dto';
 import { UpdateServiceBookingDto } from './dto/update-service-booking.dto';
-
+// Kita tidak lagi mengimpor ServiceType di sini
 
 @Controller('service-bookings')
 export class ServiceBookingsController {
@@ -20,18 +30,20 @@ export class ServiceBookingsController {
   }
 
   @UseGuards(AuthGuard)
+  @Get()
+  findAll(@Req() req) {
+    const userId = req.user.sub;
+    return this.serviceBookingsService.findAllForUser(userId);
+  }
+
+  @UseGuards(AuthGuard)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number, @Req() req) {
     const userId = req.user.sub;
     return this.serviceBookingsService.findOne(id, userId);
   }
-  @UseGuards(AuthGuard) // Endpoint ini juga harus diproteksi
-  @Get()
-  findAll(@Req() req) {
-    const userId = req.user.sub; // Ambil ID user dari token
-    return this.serviceBookingsService.findAllForUser(userId);
-  }
-    @UseGuards(AuthGuard)
+
+  @UseGuards(AuthGuard)
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -40,5 +52,12 @@ export class ServiceBookingsController {
   ) {
     const userId = req.user.sub;
     return this.serviceBookingsService.update(id, userId, updateServiceBookingDto);
+  }
+
+  // --- FUNGSI YANG DIPERBARUI ---
+  @Get('admin/all')
+  @UseGuards(AuthGuard)
+  findAllForAdmin(@Query('category') categoryName?: string) { // Menggunakan 'category' (String)
+    return this.serviceBookingsService.findAllForAdmin(categoryName);
   }
 }

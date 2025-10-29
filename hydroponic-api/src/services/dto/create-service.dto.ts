@@ -1,6 +1,5 @@
-// src/services/dto/create-service.dto.ts
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString } from 'class-validator';
-import { ServiceType } from '@prisma/client';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+// Hapus 'ServiceType' dari impor prisma
 
 export class CreateServiceDto {
   @IsString()
@@ -12,11 +11,11 @@ export class CreateServiceDto {
   description?: string;
 
   @IsInt()
-  @IsPositive()
   @IsNotEmpty()
   price: number;
 
-  @IsEnum(ServiceType) // Memastikan nilainya hanya 'INSTALLATION' atau 'TRAINING'
+  // Hapus 'type' dan ganti dengan 'categoryId'
+  @IsInt()
   @IsNotEmpty()
-  type: ServiceType;
+  categoryId: number;
 }

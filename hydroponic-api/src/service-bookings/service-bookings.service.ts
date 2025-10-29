@@ -20,46 +20,46 @@ export class ServiceBookingsService {
 
   findAllForUser(userId: number) {
     return this.prisma.serviceBooking.findMany({
-      where: {
-        userId: userId,
-      },
-      include: {
-        service: true,
-      },
+      where: { userId: userId },
+      include: { service: true },
     });
   }
 
   async findOne(id: number, userId: number) {
     const booking = await this.prisma.serviceBooking.findFirst({
-      where: {
-        id: id,
-        userId: userId,
-      },
-      include: {
-        service: true,
-      },
+      where: { id: id, userId: userId },
+      include: { service: true },
     });
-
-    if (!booking) {
-      throw new NotFoundException('Booking tidak ditemukan.');
-    }
+    if (!booking) { throw new NotFoundException('Booking tidak ditemukan.'); }
     return booking;
   }
 
-
-  async update(
-    id: number,
-    userId: number,
-    updateServiceBookingDto: UpdateServiceBookingDto,
-  ) {
-    // Pertama, pastikan booking ini ada dan milik user yang benar
+  async update(id: number, userId: number, updateServiceBookingDto: UpdateServiceBookingDto) {
     await this.findOne(id, userId);
-
     return this.prisma.serviceBooking.update({
-      where: {
-        id: id,
-      },
+      where: { id: id },
       data: updateServiceBookingDto,
+    });
+  }
+
+  // --- FUNGSI YANG DIPERBARUI ---
+  findAllForAdmin(categoryName?: string) {
+    return this.prisma.serviceBooking.findMany({
+      where: categoryName ? {
+        // Filter berdasarkan nama kategori dari service yang terhubung
+        service: {
+          category: {
+            name: categoryName
+          }
+        }
+      } : {},
+      include: {
+        user: true,
+        service: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 }

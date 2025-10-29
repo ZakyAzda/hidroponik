@@ -157,7 +157,9 @@ function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <QuickActionCard title="Manajemen Produk" description="Kelola produk, tambah produk baru, atau update inventory" icon={<Box className="w-6 h-6" />} onClick={() => handleNavigate('/dashboard/products')} />
             <QuickActionCard title="Kelola Pesanan" description="Lihat dan proses pesanan dari pelanggan" icon={<ShoppingCart className="w-6 h-6" />} onClick={() => handleNavigate('/dashboard/orders')} />
-            <QuickActionCard title="Booking Jasa" description="Kelola booking jasa dan jadwal layanan" icon={<Book className="w-6 h-6" />} onClick={() => handleNavigate('/dashboard/bookings')} />
+            <QuickActionCard title="Booking Jasa" description="Kelola booking jasa dan jadwal layanan" icon={<Book className="w-6 h-6" />} onClick={() => handleNavigate('/dashboard/services')} />
+            <QuickActionCard title="Artikel" description="Kelola artikel dan konten blog" icon={<Book className="w-6 h-6" />} onClick={() => handleNavigate('/dashboard/articles')} />
+            <QuickActionCard title="Review" description="Kelola review dan feedback pelanggan" icon={<Book className="w-6 h-6" />} onClick={() => handleNavigate('/dashboard/reviews')} />
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
