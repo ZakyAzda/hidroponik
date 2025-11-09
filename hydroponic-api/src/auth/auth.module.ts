@@ -1,21 +1,23 @@
+// src/auth/auth.module.ts
+
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
-import { PrismaService } from 'src/prisma.service';
-import { UsersService } from 'src/users/users.service';
+import { PassportModule } from '@nestjs/passport'; // <-- 1. Impor
+import { JwtStrategy } from './jwt.strategy';     // <-- 2. Impor
 import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
-    UsersModule, // Sekarang UsersModule sudah benar
+    UsersModule,
+    PassportModule, // <-- 3. Tambahkan di sini
     JwtModule.register({
-      global: true,
-      secret: 'INI_RAHASIA_JANGAN_DITIRU',
+      secret: 'INI_RAHASIA_JANGAN_DITIRU', // Secret key Anda
       signOptions: { expiresIn: '1d' },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, PrismaService, UsersService],
+  providers: [AuthService, JwtStrategy], // <-- 4. Tambahkan JwtStrategy di sini
 })
 export class AuthModule {}

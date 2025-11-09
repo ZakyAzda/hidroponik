@@ -1,4 +1,6 @@
-import { IsString, IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
+// src/articles/dto/create-article.dto.ts
+
+import { IsString, IsNotEmpty, IsUrl } from 'class-validator';
 
 export class CreateArticleDto {
   @IsString()
@@ -9,8 +11,8 @@ export class CreateArticleDto {
   @IsNotEmpty()
   content: string;
 
-  @IsOptional()
   @IsString()
+  @IsNotEmpty() // <-- Pastikan ini ada
   @IsUrl()
-  imageUrl?: string;
+  imageUrl: string; // <-- Hapus tanda tanya (?)
 }
