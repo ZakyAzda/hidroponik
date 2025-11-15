@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Briefcase, DollarSign, FileText, Layers } from 'lucide-react';
+import { ArrowLeft, Briefcase, DollarSign, Layers, Image as ImageIcon } from 'lucide-react';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 
 
 interface Category {
@@ -25,6 +26,7 @@ function CreateServicePage() {
     description: '',
     price: 0,
     categoryId: 0,
+    imageUrl: '', // <-- Tambahkan state untuk imageUrl
   });
   
   const [error, setError] = useState('');
@@ -49,12 +51,17 @@ function CreateServicePage() {
     setFormData(prev => ({ ...prev, [id]: value }));
   };
   
-const handleCategoryChange = (value: string) => {
-  setFormData(prev => ({ 
-    ...prev, 
-    categoryId: parseInt(value, 10) // Perbarui 'categoryId' dan ubah jadi angka
-  }));
-};
+  const handleCategoryChange = (value: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      categoryId: parseInt(value, 10)
+    }));
+  };
+
+  // Fungsi untuk menangani sukses upload gambar
+  const handleImageUploadSuccess = (url: string) => {
+    setFormData(prev => ({ ...prev, imageUrl: url }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,12 +80,7 @@ const handleCategoryChange = (value: string) => {
         price: parseInt(String(formData.price), 10),
       });
 
-      // Redirect berdasarkan kategori service
-      if (formData.categoryId === 1) {
-        router.push('/dashboard/services/training');
-      } else {
-        router.push('/dashboard/services/consulting');
-      }
+      router.push('/dashboard/services');
     } catch (err: any) {
       console.error('Gagal membuat jasa:', err);
       const errorMessages = err.response?.data?.message;
@@ -116,6 +118,28 @@ const handleCategoryChange = (value: string) => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
+            {/* Image Upload Card */}
+            <Card className="border-gray-200 shadow-sm">
+              <CardHeader className="bg-white border-b border-gray-100">
+                <div className="flex items-center space-x-2">
+                  <ImageIcon className="h-5 w-5 text-gray-400" />
+                  <CardTitle className="text-lg font-medium">Gambar Jasa</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <ImageUpload
+                  endpoint="/services/upload"
+                  onUploadSuccess={handleImageUploadSuccess}
+                />
+                {formData.imageUrl && (
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-600 mb-2">Preview Gambar:</p>
+                    <img src={formData.imageUrl} alt="Preview" className="rounded-lg max-h-48 border border-gray-200" />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Service Type Selection */}
             <Card className="border-gray-200 shadow-sm">
               <CardHeader className="bg-white border-b border-gray-100">

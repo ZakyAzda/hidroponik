@@ -1,9 +1,10 @@
 // src/app.module.ts
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config'; // <-- Impor ConfigModule
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProductsModule } from './products/products.module';
-import { PrismaService } from './prisma.service'; // <-- Impor PrismaService
+import { PrismaService } from './prisma.service';
 import { ProductCategoriesModule } from './product-categories/product-categories.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -13,11 +14,27 @@ import { OrdersModule } from './orders/orders.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ServiceCategoriesModule } from './service-categories/service-categories.module';
 import { ArticlesModule } from './articles/articles.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
-  imports: [ProductsModule, ProductCategoriesModule, AuthModule, UsersModule, ServicesModule, ServiceBookingsModule, OrdersModule, DashboardModule, ServiceCategoriesModule, ArticlesModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // <-- Membuat ConfigModule tersedia secara global
+    }),
+    ProductsModule,
+    ProductCategoriesModule,
+    AuthModule,
+    UsersModule,
+    ServicesModule,
+    ServiceBookingsModule,
+    OrdersModule,
+    DashboardModule,
+    ServiceCategoriesModule,
+    ArticlesModule,
+    ReviewsModule,
+  ],
   controllers: [AppController],
-  providers: [AppService, PrismaService], // <-- Tambahkan PrismaService
-  exports: [PrismaService], // <-- Ekspor agar bisa dipakai modul lain
+  providers: [AppService, PrismaService],
+  exports: [PrismaService],
 })
 export class AppModule {}

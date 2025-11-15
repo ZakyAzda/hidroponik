@@ -7,9 +7,10 @@ import api from '../../app/lib/api';
 
 interface ImageUploadProps {
   onUploadSuccess: (url: string) => void;
+  endpoint: string; // <-- Tambahkan prop endpoint
 }
 
-export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
+export function ImageUpload({ onUploadSuccess, endpoint }: ImageUploadProps) {
   const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -23,8 +24,8 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
     formData.append('file', file);
 
     try {
-      // Kirim file ke endpoint upload di backend
-      const response = await api.post('/products/upload', formData, {
+      // Kirim file ke endpoint yang ditentukan
+      const response = await api.post(endpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -38,7 +39,7 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
       setErrorMessage('Upload gagal. Coba lagi.');
       setStatus('error');
     }
-  }, [onUploadSuccess]);
+  }, [onUploadSuccess, endpoint]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

@@ -1,4 +1,3 @@
-// src/auth/auth.service.ts
 import {
   Injectable,
   ConflictException,
@@ -8,29 +7,28 @@ import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto'; // <-- Impor RegisterDto
+import { RegisterDto } from './dto/register.dto';
+import { UserRole } from '@prisma/client'; // <-- Impor UserRole
 
 @Injectable()
 export class AuthService {
-  // Hapus PrismaService dari constructor karena tidak dipakai
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
   ) {}
 
-  // Ganti 'body: any' dengan 'registerDto: RegisterDto'
   async register(registerDto: RegisterDto) {
     const userExists = await this.usersService.findOne(registerDto.email);
     if (userExists) {
       throw new ConflictException('Email sudah terdaftar');
     }
 
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-
+    // Panggil create service dengan password asli, biarkan service yang melakukan hashing
     const user = await this.usersService.create({
       name: registerDto.name,
       email: registerDto.email,
-      password: hashedPassword,
+      password: registerDto.password, // <-- Kirim password asli
+      role: UserRole.CUSTOMER,
     });
 
     const payload = { sub: user.id, email: user.email, role: user.role };
@@ -46,7 +44,14 @@ export class AuthService {
       throw new UnauthorizedException('Email atau password salah');
     }
 
+    console.log('--- DIAGNOSIS LOGIN ---');
+    console.log('Password dari Form:', loginDto.password);
+    console.log('Password Hashed dari DB:', user.password);
+    
     const isMatch = await bcrypt.compare(loginDto.password, user.password);
+    console.log('Hasil Perbandingan (isMatch):', isMatch);
+    console.log('-----------------------');
+
     if (!isMatch) {
       throw new UnauthorizedException('Email atau password salah');
     }
@@ -55,6 +60,7 @@ export class AuthService {
     return {
       message: 'Login berhasil',
       access_token: await this.jwtService.signAsync(payload),
+      user: payload, // Mengembalikan data user juga
     };
   }
 }

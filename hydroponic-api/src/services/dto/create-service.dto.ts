@@ -8,6 +8,10 @@ export class CreateServiceDto {
 
   @IsString()
   @IsOptional()
+  imageUrl?: string;
+
+  @IsString()
+  @IsOptional()
   description?: string;
 
   @IsInt()

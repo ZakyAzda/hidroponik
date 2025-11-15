@@ -1,32 +1,3 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import withAuth from '../../../withAuth';
-import api from '../../../../lib/api';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Eye, Trash2, PlusCircle, Briefcase, DollarSign, Users, Hash } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import Link from 'next/link';
-
 // Definisikan tipe data untuk Jasa
 interface Service {
   id: number;
@@ -34,6 +5,7 @@ interface Service {
   price: number;
   type: string;
   description: string | null;
+  imageUrl: string | null; // <-- Tambahkan imageUrl
 }
 
 function ManageConsultingServicesPage() {
@@ -190,6 +162,7 @@ function ManageConsultingServicesPage() {
                         ID
                       </div>
                     </TableHead>
+                    <TableHead className="font-semibold text-gray-700">Gambar</TableHead>
                     <TableHead className="font-semibold text-gray-700">
                       <div className="flex items-center gap-2">
                         <Briefcase className="h-4 w-4" />
@@ -216,6 +189,15 @@ function ManageConsultingServicesPage() {
                           <span className="text-gray-400">#</span>
                           <span className="font-semibold">{service.id.toString().padStart(5, '0')}</span>
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        {service.imageUrl ? (
+                          <img src={service.imageUrl} alt={service.name} className="h-12 w-12 rounded-md object-cover" />
+                        ) : (
+                          <div className="h-12 w-12 rounded-md bg-gray-100 flex items-center justify-center">
+                            <Briefcase className="h-6 w-6 text-gray-400" />
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <p className="font-medium text-gray-900">{service.name}</p>

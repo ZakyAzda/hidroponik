@@ -79,6 +79,7 @@ model Review {
   id        Int      @id @default(autoincrement())
   rating    Int      // Rating bintang dari 1 sampai 5
   comment   String?  @db.Text
+  status    ReviewStatus @default(PENDING) // <-- TAMBAHKAN BARIS INI
   createdAt DateTime @default(now())
   
   // Foreign Keys
@@ -86,6 +87,12 @@ model Review {
   user      User     @relation(fields: [userId], references: [id])
   productId Int
   product   Product  @relation(fields: [productId], references: [id])
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 
@@ -126,6 +133,7 @@ model ServiceCategory {
 model Service {
   id              Int               @id @default(autoincrement())
   name            String
+  imageUrl        String?           // <-- TAMBAHKAN BARIS INI
   description     String?           @db.Text
   price           Int
   

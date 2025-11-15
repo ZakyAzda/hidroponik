@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios'; // Pastikan axios diimpor
+import axios from 'axios';
 import { Eye, EyeOff, Lock, Mail, Shield } from 'lucide-react';
+import { useAuthStore } from '../store/authStore'; // <-- 1. Impor store Zustand
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,7 +12,11 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter(); // Inisialisasi router
+  const router = useRouter();
+  
+  // 2. Ambil fungsi dari store
+  const setToken = useAuthStore((state) => state.setToken);
+  const setUser = useAuthStore((state) => state.setUser);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,14 +24,16 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // GANTI LOGIKA SIMULASI DENGAN PANGGILAN API AXIOS
       const response = await axios.post('http://localhost:3000/auth/login', {
         email: email,
         password: password,
       });
 
-      // Simpan token dan arahkan ke dashboard
-      localStorage.setItem('access_token', response.data.access_token);
+      // 3. Gunakan fungsi dari store untuk menyimpan state
+      const { access_token, user } = response.data;
+      setToken(access_token);
+      setUser(user);
+      
       router.push('/dashboard');
 
     } catch (err: any) {

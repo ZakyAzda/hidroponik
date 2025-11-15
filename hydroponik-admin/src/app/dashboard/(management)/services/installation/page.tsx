@@ -34,6 +34,7 @@ interface Service {
   price: number;
   type: string;
   description: string | null;
+  imageUrl: string | null; // <-- Tambahkan imageUrl
 }
 
 const SERVICE_CATEGORY_ID = 2;
@@ -192,6 +193,7 @@ function ManageTrainingServicesPage() {
                         ID
                       </div>
                     </TableHead>
+                    <TableHead className="font-semibold text-gray-700">Gambar</TableHead>
                     <TableHead className="font-semibold text-gray-700">
                       <div className="flex items-center gap-2">
                         <GraduationCap className="h-4 w-4" />
@@ -218,6 +220,15 @@ function ManageTrainingServicesPage() {
                           <span className="text-gray-400">#</span>
                           <span className="font-semibold">{service.id.toString().padStart(5, '0')}</span>
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        {service.imageUrl ? (
+                          <img src={service.imageUrl} alt={service.name} className="h-12 w-12 rounded-md object-cover" />
+                        ) : (
+                          <div className="h-12 w-12 rounded-md bg-gray-100 flex items-center justify-center">
+                            <Briefcase className="h-6 w-6 text-gray-400" />
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <p className="font-medium text-gray-900">{service.name}</p>
