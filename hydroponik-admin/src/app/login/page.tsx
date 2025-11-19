@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { Eye, EyeOff, Lock, Mail, Shield } from 'lucide-react';
-import { useAuthStore } from '../store/authStore'; // <-- 1. Impor store Zustand
+import { useAuthStore } from '../../store/authStore'; // <-- 1. Impor store Zustand
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');

@@ -23,15 +23,15 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles, UserRole } from 'src/auth/decorators/roles.decorator';
 import { ApiOperation, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
-@ApiTags('products') // Mengelompokkan semua endpoint di bawah tag 'products'
-@ApiBearerAuth() // Menandakan bahwa endpoint ini memerlukan Bearer Token
+@ApiTags('products')
 @Controller('products')
-@UseGuards(AuthGuard, RolesGuard)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new product' })
   @ApiResponse({ status: 201, description: 'The product has been successfully created.' })
   @ApiResponse({ status: 400, description: 'Bad Request. Invalid input data.' })
@@ -58,7 +58,9 @@ export class ProductsController {
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a product by ID' })
   @ApiResponse({ status: 200, description: 'The product has been successfully updated.' })
   @ApiResponse({ status: 404, description: 'Product not found.' })
@@ -70,7 +72,9 @@ export class ProductsController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a product by ID' })
   @ApiResponse({ status: 200, description: 'The product has been successfully deleted.' })
   @ApiResponse({ status: 404, description: 'Product not found.' })
@@ -79,7 +83,9 @@ export class ProductsController {
   }
 
   @Post('upload')
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Upload a product image' })
   @ApiResponse({ status: 201, description: 'Image uploaded successfully, returns the image URL.' })
   @UseInterceptors(

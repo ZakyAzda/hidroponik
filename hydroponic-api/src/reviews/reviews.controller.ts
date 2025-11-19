@@ -7,19 +7,27 @@ import { UpdateReviewStatusDto } from './dto/update-review-status.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('reviews')
-@ApiBearerAuth()
-@UseGuards(AuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
+  @Get('public')
+  findAllApproved() {
+    return this.reviewsService.findAllApproved();
+  }
+
   @Get()
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
   findAll() {
     return this.reviewsService.findAll();
   }
 
   @Patch(':id/status')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateReviewStatusDto: UpdateReviewStatusDto,

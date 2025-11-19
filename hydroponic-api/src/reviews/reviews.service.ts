@@ -33,6 +33,27 @@ export class ReviewsService {
   }
 
   /**
+   * Mengambil semua review yang berstatus 'APPROVED'
+   */
+  findAllApproved() {
+    return this.prisma.review.findMany({
+      where: {
+        status: 'APPROVED',
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  /**
    * Memperbarui status sebuah review (PENDING, APPROVED, REJECTED)
    * @param id ID dari review yang akan diupdate
    * @param updateReviewStatusDto DTO yang berisi status baru
