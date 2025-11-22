@@ -2,33 +2,49 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 
 const withAuth = (WrappedComponent: React.ComponentType) => {
   const Wrapper = (props: any) => {
     const router = useRouter();
     const { token, user, logout } = useAuthStore();
-    
-    // Tampilkan loading jika ada token tapi data user belum terisi
-    const isLoading = !user && !!token;
+    const [isClient, setIsClient] = useState(false);
+
+    // Set isClient menjadi true setelah komponen di-mount di browser.
+    useEffect(() => {
+      setIsClient(true);
+    }, []);
 
     useEffect(() => {
-      // Jika tidak ada token sama sekali, tendang ke login
+      // Jangan jalankan logika apa pun jika kita belum di klien.
+      if (!isClient) {
+        return;
+      }
+
+      // Jika tidak ada token setelah di klien, arahkan ke login.
       if (!token) {
         router.replace('/');
         return;
       }
 
-      // Jika data user sudah ada, periksa perannya
+      // Jika user sudah ada tapi bukan admin, tolak akses.
       if (user && user.role !== 'ADMIN') {
         alert('Akses ditolak. Anda bukan admin.');
-        logout(); // Hapus sesi yang tidak valid
-        router.replace('/'); // Tendang ke login
+        logout();
+        router.replace('/');
       }
-    }, [token, user, router, logout]);
+    }, [isClient, token, user, router, logout]);
 
-    // Selama proses fetch user, tampilkan loading
+    // Di server, atau di klien sebelum useEffect berjalan, render null.
+    // Ini memastikan render server dan render klien awal identik.
+    if (!isClient) {
+      return null;
+    }
+
+    // Setelah di klien, tentukan apakah perlu menampilkan loading.
+    const isLoading = !user && !!token;
+
     if (isLoading) {
       return (
         <div className="flex items-center justify-center min-h-screen">
@@ -37,12 +53,12 @@ const withAuth = (WrappedComponent: React.ComponentType) => {
       );
     }
 
-    // Jika semua pemeriksaan lolos (ada user dan rolenya ADMIN), tampilkan halaman
+    // Jika semua pemeriksaan lolos, tampilkan komponen yang sebenarnya.
     if (user && user.role === 'ADMIN') {
       return <WrappedComponent {...props} />;
     }
 
-    // Fallback jika terjadi kondisi aneh (misal: tidak ada token)
+    // Fallback jika terjadi redirect atau kondisi lain.
     return null;
   };
 
