@@ -237,13 +237,12 @@ const Navbar = () => {
                // --- BAGIAN INI YANG DIUBAH ---
                // Menggunakan button onClick={openLogin} BUKAN Link href="/login"
                <button 
-                 onClick={openLogin}
-                 className="bg-gradient-to-r from-[#70B398] to-[#5fa085] text-white text-sm font-semibold px-6 py-2.5 rounded-full hover:shadow-lg hover:scale-105 transition-all duration-300 shadow-md" 
-                 style={{ fontFamily: "'Inter', sans-serif" }}
-               >
-                 Masuk
-               </button>
-            )}
+                  onClick={openLogin} // <--- INI KUNCINYA. Panggil fungsi, jangan pindah halaman!
+                  className="bg-gradient-to-r from-[#70B398] to-[#5fa085] text-white text-sm font-semibold px-6 py-2.5 rounded-full hover:shadow-lg hover:scale-105 transition-all duration-300 shadow-md"
+                >
+                  Masuk
+                </button>
+              )}
           </div>
         </div>
       </header>
