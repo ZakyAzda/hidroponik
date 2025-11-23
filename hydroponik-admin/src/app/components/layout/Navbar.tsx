@@ -5,16 +5,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-// 1. IMPORT STORE KERANJANG
+// Pastikan path ini benar mengarah ke file di dalam src/app/lib
 import { useCartStore } from '@/app/lib/useCartStore';
+// 1. IMPORT AUTH STORE (Sesuaikan path jika folder store Anda berbeda)
+import { useAuthStore } from '@/store/authStore'; 
+import { LayoutDashboard, LogOut, User, Search, ShoppingCart } from 'lucide-react';
 
-// TIPE DATA SEARCH (Tetap Sama)
 type SearchResult = {
-  id: number;
-  title: string;
-  imageUrl: string | null;
-  type: 'produk' | 'artikel' | 'jasa';
-  price?: number;
+  id: number; 
+  title: string; 
+  imageUrl: string | null; 
+  type: 'produk' | 'artikel' | 'jasa'; 
+  price?: number; 
   url: string;
 };
 
@@ -24,19 +26,31 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-
-  // 2. STATE UNTUK HYDRATION FIX (Agar tidak error saat load LocalStorage)
+  
+  // State User & Auth
+  const [user, setUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
 
-  // 3. AMBIL DATA ITEM DARI STORE ZUSTAND
-  const cartItems = useCartStore((state) => state.items);
+  // 2. AMBIL FUNGSI OPEN LOGIN DARI STORE
+  const openLogin = useAuthStore((state) => state.openLogin);
 
-  // 4. HITUNG TOTAL QUANTITY
+  // Cart
+  const cartItems = useCartStore((state) => state.items);
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   const pathname = usePathname();
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper warna badge
+  const getBadgeColor = (type: string) => {
+    switch (type) {
+      case 'produk': return 'bg-green-100 text-green-700';
+      case 'jasa': return 'bg-purple-100 text-purple-700';
+      case 'artikel': return 'bg-blue-100 text-blue-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
 
   const navLinks = [
     { name: 'Beranda', href: '/' },
@@ -50,17 +64,19 @@ const Navbar = () => {
     const handleScroll = () => setSticky(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     
-    // Set mounted ke true setelah component load di browser
+    // LOAD USER
     setMounted(true);
+    const storedUser = localStorage.getItem('user_data');
+    if (storedUser) {
+      try { setUser(JSON.parse(storedUser)); } catch (e) {}
+    }
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    if (isSearchOpen && searchInputRef.current) searchInputRef.current.focus();
-  }, [isSearchOpen]);
+  useEffect(() => { if (isSearchOpen && searchInputRef.current) searchInputRef.current.focus(); }, [isSearchOpen]);
 
-  // --- LOGIKA PENCARIAN (Tetap Sama) ---
+  // --- LOGIKA SEARCH ---
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       if (searchQuery.length > 2) {
@@ -80,12 +96,7 @@ const Navbar = () => {
               .filter((p: any) => p.name.toLowerCase().includes(keyword))
               .slice(0, 3)
               .map((p: any) => ({
-                id: p.id,
-                title: p.name,
-                imageUrl: p.imageUrl,
-                type: 'produk' as const,
-                price: p.price,
-                url: `/produk/${p.id}`
+                id: p.id, title: p.name, imageUrl: p.imageUrl, type: 'produk' as const, price: p.price, url: `/produk/${p.id}`
               }));
             combinedResults = [...combinedResults, ...items];
           }
@@ -95,12 +106,7 @@ const Navbar = () => {
               .filter((s: any) => s.name.toLowerCase().includes(keyword))
               .slice(0, 2)
               .map((s: any) => ({
-                id: s.id,
-                title: s.name,
-                imageUrl: s.imageUrl,
-                type: 'jasa' as const,
-                price: s.price,
-                url: `/jasa/${s.id}`
+                id: s.id, title: s.name, imageUrl: s.imageUrl, type: 'jasa' as const, price: s.price, url: `/jasa/${s.id}`
               }));
             combinedResults = [...combinedResults, ...items];
           }
@@ -110,12 +116,7 @@ const Navbar = () => {
               .filter((a: any) => a.title.toLowerCase().includes(keyword))
               .slice(0, 2)
               .map((a: any) => ({
-                id: a.id,
-                title: a.title,
-                imageUrl: a.imageUrl,
-                type: 'artikel' as const,
-                price: undefined,
-                url: `/artikel/${a.id}`
+                id: a.id, title: a.title, imageUrl: a.imageUrl, type: 'artikel' as const, price: undefined, url: `/artikel/${a.id}`
               }));
             combinedResults = [...combinedResults, ...items];
           }
@@ -140,13 +141,12 @@ const Navbar = () => {
     }
   };
 
-  const getBadgeColor = (type: string) => {
-    switch (type) {
-      case 'produk': return 'bg-green-100 text-green-700';
-      case 'jasa': return 'bg-purple-100 text-purple-700';
-      case 'artikel': return 'bg-blue-100 text-blue-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user_data');
+    setUser(null);
+    router.push('/');
+    router.refresh();
   };
 
   return (
@@ -157,7 +157,7 @@ const Navbar = () => {
           "transition-all duration-500 ease-in-out",
           isSticky ? "shadow-2xl shadow-[#70B398]/30" : "shadow-lg hover:shadow-xl"
         )}>
-           {/* Logo Section */}
+           {/* Logo */}
            <Link href="/" className="flex items-center space-x-3 group">
              <div className="relative">
                 <div className="absolute inset-0 bg-[#70B398]/20 rounded-full blur-md group-hover:blur-lg transition-all duration-300"></div>
@@ -169,7 +169,7 @@ const Navbar = () => {
              </div>
           </Link>
 
-          {/* Navigation Links */}
+          {/* Nav Links */}
           <nav className="hidden md:flex items-center space-x-2">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
@@ -183,15 +183,26 @@ const Navbar = () => {
 
            {/* Action Buttons */}
           <div className="flex items-center space-x-3">
+            
+            {/* 1. TOMBOL DASHBOARD (ADMIN ONLY) */}
+            {mounted && user?.role === 'ADMIN' && (
+              <Link href="/dashboard">
+                <button className="hidden md:flex items-center gap-2 bg-gray-900 text-white text-xs font-bold px-4 py-2.5 rounded-full hover:bg-gray-700 transition-all shadow-md border border-gray-700" title="Admin Dashboard">
+                  <LayoutDashboard size={16} />
+                  <span>Dashboard</span>
+                </button>
+              </Link>
+            )}
+
+            {/* Search */}
             <button onClick={() => setIsSearchOpen(true)} className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-[#70B398] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md group">
-              <svg className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <Search className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors" />
             </button>
             
+            {/* Cart */}
             <Link href="/cart">
               <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-[#70B398] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md group relative">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                
-                {/* 5. TAMPILKAN BADGE JIKA ADA ITEM */}
+                <ShoppingCart className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors" />
                 {mounted && cartCount > 0 && (
                   <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full ring-2 ring-white animate-bounce">
                     {cartCount}
@@ -200,7 +211,39 @@ const Navbar = () => {
               </button>
             </Link>
 
-            <Link href="/login" className="bg-gradient-to-r from-[#70B398] to-[#5fa085] text-white text-sm font-semibold px-6 py-2.5 rounded-full hover:shadow-lg hover:scale-105 transition-all duration-300 shadow-md" style={{ fontFamily: "'Inter', sans-serif" }}>Masuk</Link>
+            {/* Login / Profile */}
+            {mounted && user ? (
+               <div className="relative group z-50">
+                 <div className="w-10 h-10 bg-[#3E8467] rounded-full flex items-center justify-center text-white font-bold cursor-pointer hover:scale-105 transition-transform shadow-md border-2 border-white">
+                    {user.name ? user.name.charAt(0).toUpperCase() : <User size={20}/>}
+                 </div>
+                 <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right">
+                    <div className="px-4 py-3 border-b border-gray-50 bg-gray-50">
+                      <p className="text-xs text-gray-500">Halo,</p>
+                      <p className="text-sm font-bold text-gray-800 truncate">{user.name}</p>
+                    </div>
+                    {/* Mobile Dashboard Link */}
+                    {user.role === 'ADMIN' && (
+                      <Link href="/dashboard" className="flex md:hidden items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <LayoutDashboard size={14} /> Dashboard
+                      </Link>
+                    )}
+                    <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50 w-full text-left transition-colors">
+                       <LogOut size={14} /> Keluar
+                    </button>
+                 </div>
+               </div>
+            ) : (
+               // --- BAGIAN INI YANG DIUBAH ---
+               // Menggunakan button onClick={openLogin} BUKAN Link href="/login"
+               <button 
+                 onClick={openLogin}
+                 className="bg-gradient-to-r from-[#70B398] to-[#5fa085] text-white text-sm font-semibold px-6 py-2.5 rounded-full hover:shadow-lg hover:scale-105 transition-all duration-300 shadow-md" 
+                 style={{ fontFamily: "'Inter', sans-serif" }}
+               >
+                 Masuk
+               </button>
+            )}
           </div>
         </div>
       </header>

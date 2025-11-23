@@ -1,68 +1,72 @@
-// src/components/withAuth.tsx
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useAuthStore } from '../../store/authStore';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/authStore'; // Pastikan path ini benar
+import { Loader2 } from 'lucide-react';
 
-const withAuth = (WrappedComponent: React.ComponentType) => {
-  const Wrapper = (props: any) => {
+// Definisi HOC (Higher-Order Component)
+const withAuth = (WrappedComponent: React.ComponentType<any>) => {
+  const AuthenticatedComponent = (props: any) => {
     const router = useRouter();
-    const { token, user, logout } = useAuthStore();
-    const [isClient, setIsClient] = useState(false);
+    const [isVerified, setIsVerified] = useState(false);
+    
+    // Ambil data dari Store
+    const token = useAuthStore((state) => state.token);
+    const user = useAuthStore((state) => state.user);
+    
+    // Ambil fungsi setToken/setUser untuk re-hydrate jika perlu
+    const setToken = useAuthStore((state) => state.setToken);
+    const setUser = useAuthStore((state) => state.setUser);
 
-    // Set isClient menjadi true setelah komponen di-mount di browser.
     useEffect(() => {
-      setIsClient(true);
-    }, []);
-
-    useEffect(() => {
-      // Jangan jalankan logika apa pun jika kita belum di klien.
-      if (!isClient) {
+      // 1. Cek State Zustand dulu
+      if (token && user) {
+        if (user.role !== 'ADMIN') {
+          router.push('/'); // Login tapi bukan admin
+        } else {
+          setIsVerified(true); // Sukses
+        }
         return;
       }
 
-      // Jika tidak ada token setelah di klien, arahkan ke login.
-      if (!token) {
-        router.replace('/');
-        return;
+      // 2. Jika State kosong (misal di-refresh), cek LocalStorage
+      const storedToken = localStorage.getItem('access_token');
+      const storedUser = localStorage.getItem('user_data');
+
+      if (!storedToken || !storedUser) {
+        router.push('/login'); // Tidak ada data login
+      } else {
+        // Restore data ke Zustand
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser.role !== 'ADMIN') {
+          router.push('/'); // Bukan admin
+        } else {
+          setToken(storedToken);
+          setUser(parsedUser);
+          setIsVerified(true);
+        }
       }
+    }, [token, user, router, setToken, setUser]);
 
-      // Jika user sudah ada tapi bukan admin, tolak akses.
-      if (user && user.role !== 'ADMIN') {
-        alert('Akses ditolak. Anda bukan admin.');
-        logout();
-        router.replace('/');
-      }
-    }, [isClient, token, user, router, logout]);
-
-    // Di server, atau di klien sebelum useEffect berjalan, render null.
-    // Ini memastikan render server dan render klien awal identik.
-    if (!isClient) {
-      return null;
-    }
-
-    // Setelah di klien, tentukan apakah perlu menampilkan loading.
-    const isLoading = !user && !!token;
-
-    if (isLoading) {
+    // Tampilkan Loading selama verifikasi
+    if (!isVerified) {
       return (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-800 rounded-full animate-spin"></div>
+        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="w-10 h-10 text-gray-400 animate-spin" />
+            <p className="text-gray-500 text-sm">Memverifikasi akses...</p>
+          </div>
         </div>
       );
     }
 
-    // Jika semua pemeriksaan lolos, tampilkan komponen yang sebenarnya.
-    if (user && user.role === 'ADMIN') {
-      return <WrappedComponent {...props} />;
-    }
-
-    // Fallback jika terjadi redirect atau kondisi lain.
-    return null;
+    // Jika lolos, tampilkan komponen asli
+    return <WrappedComponent {...props} />;
   };
 
-  return Wrapper;
+  return AuthenticatedComponent;
 };
 
+// --- INI YANG TADI KURANG (EXPORT DEFAULT) ---
 export default withAuth;

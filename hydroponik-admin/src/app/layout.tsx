@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import AuthProvider from "@/components/AuthProvider"; // <-- Impor AuthProvider
+import AuthProvider from "@/components/AuthProvider";
+// 1. IMPOR LOGIN MODAL
+import LoginModal from "@/components/auth/LoginModal"; 
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +30,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          {/* 2. PASANG MODAL DI SINI (Di luar children agar jadi overlay) */}
+          <LoginModal /> 
+        </AuthProvider>
       </body>
     </html>
   );

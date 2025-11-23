@@ -1,27 +1,29 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+
+interface User {
+  name: string;
+  email: string;
+  role: string;
+}
 
 interface AuthState {
   token: string | null;
-  user: { id: number; email: string; role: string } | null;
+  user: User | null;
+  isLoginOpen: boolean; // <--- STATE BARU (Saklar Popup)
   setToken: (token: string | null) => void;
-  setUser: (user: { id: number; email: string; role: string } | null) => void;
-  logout: () => void;
+  setUser: (user: User | null) => void;
+  openLogin: () => void; // <--- FUNGSI BUKA
+  closeLogin: () => void; // <--- FUNGSI TUTUP
 }
 
-export const useAuthStore = create(
-  persist<AuthState>(
-    (set) => ({
-      token: null,
-      user: null,
-      setToken: (token) => set({ token }),
-      setUser: (user) => set({ user }),
-      logout: () => set({ token: null, user: null }),
-    }),
-    {
-      name: 'auth-storage', // Nama item di localStorage
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ token: state.token }), // Hanya simpan 'token' ke localStorage
-    }
-  )
-);
+export const useAuthStore = create<AuthState>((set) => ({
+  token: null,
+  user: null,
+  isLoginOpen: false, // Default tertutup
+
+  setToken: (token) => set({ token }),
+  setUser: (user) => set({ user }),
+  
+  openLogin: () => set({ isLoginOpen: true }),
+  closeLogin: () => set({ isLoginOpen: false }),
+}));
