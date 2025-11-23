@@ -1,6 +1,9 @@
 // src/app.module.ts
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config'; // <-- Impor ConfigModule
+import { ConfigModule } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static'; // <-- 1. IMPOR INI
+import { join } from 'path'; // <-- 2. IMPOR INI
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProductsModule } from './products/products.module';
@@ -18,8 +21,15 @@ import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
+    // --- 3. TAMBAHKAN BLOK INI ---
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'public'), 
+      serveRoot: '/', // File bisa diakses langsung dari root (misal: localhost:3000/uploads/foto.jpg)
+    }),
+    // -----------------------------
+    
     ConfigModule.forRoot({
-      isGlobal: true, // <-- Membuat ConfigModule tersedia secara global
+      isGlobal: true,
     }),
     ProductsModule,
     ProductCategoriesModule,

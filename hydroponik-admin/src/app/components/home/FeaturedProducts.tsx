@@ -81,14 +81,15 @@ const FeaturedProducts = async () => {
             </div>
             
             <Link 
-              href="/kategori" 
-              className="group relative bg-[#70B398] text-white text-sm font-semibold px-6 py-3 rounded-lg overflow-hidden transition-all duration-300 hover:bg-[#5fa085] hover:shadow-xl hover:scale-105 active:scale-95"
+              href="/produk" 
+              className="group flex items-center space-x-2 text-gray-600 font-semibold hover:text-[#70B398] transition-colors duration-300"
             >
-              <span className="relative z-10 flex items-center gap-2">
-                Kategori
-                <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">›</span>
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              <span>Lihat Semua Produk</span>
+              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm group-hover:bg-[#70B398] group-hover:text-white transition-all duration-300">
+                <svg className="w-4 h-4 group-hover:-rotate-45 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </div>
             </Link>
           </div>
         </Reveal>
