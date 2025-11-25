@@ -1,33 +1,82 @@
+'use client';
+
+import { useEffect, useState } from 'react'; // <--- 1. WAJIB ADA
+import withAuth from '../../../withAuth'; // Sesuaikan path jika perlu
+import api from '@/app/lib/api'; // <--- 2. WAJIB ADA (Sesuaikan path jika relative: ../../../../lib/api)
+import { Eye, Trash2, PlusCircle, DollarSign, Briefcase, Hash, Users, GraduationCap } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'; // Pastikan komponen Table diimport
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
+
 // Definisikan tipe data untuk Jasa
 interface Service {
   id: number;
   name: string;
   price: number;
-  type: string;
+  categoryId: number;
   description: string | null;
-  imageUrl: string | null; // <-- Tambahkan imageUrl
+  imageUrl: string | null;
 }
 
-function ManageConsultingServicesPage() {
+// GANTI ID INI SESUAI DATABASE KAMU (Misal Pelatihan ID-nya 3)
+const TRAINING_CATEGORY_ID = 1; 
+
+function ManageTrainingServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // State Edit
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // State Form Edit (Agar input bisa diketik)
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    description: '',
+    price: 0,
+  });
 
   const fetchServices = async () => {
-  try {
-    // Panggil endpoint DENGAN filter categoryId
-    // Ganti '2' dengan ID kategori "Instalasi" Anda yang sebenarnya
-    const response = await api.get('/services?categoryId=1'); 
-    setServices(response.data);
-  } catch (error) {
-    console.error('Gagal mengambil data jasa:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      // Ambil data dengan filter kategori
+      const response = await api.get(`/services?categoryId=${TRAINING_CATEGORY_ID}`);
+      setServices(response.data);
+    } catch (error) {
+      console.error('Gagal mengambil data jasa:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => { fetchServices(); }, []);
+
+  // Saat tombol edit ditekan, isi form dengan data lama
+  const handleEditClick = (service: Service) => {
+    setSelectedService(service);
+    setEditFormData({
+      name: service.name,
+      description: service.description || '',
+      price: service.price,
+    });
+    setIsDialogOpen(true);
+  };
 
   const handleDelete = async (serviceId: number) => {
     if (confirm('Anda yakin ingin menghapus jasa ini?')) {
@@ -44,9 +93,9 @@ function ManageConsultingServicesPage() {
     if (!selectedService) return;
     try {
       const dataToUpdate = {
-        name: selectedService.name,
-        description: selectedService.description,
-        price: Number(selectedService.price),
+        name: editFormData.name,
+        description: editFormData.description,
+        price: Number(editFormData.price),
       };
       await api.patch(`/services/${selectedService.id}`, dataToUpdate);
       setIsDialogOpen(false);
@@ -61,7 +110,7 @@ function ManageConsultingServicesPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-          <p className="mt-4 text-gray-600">Memuat data jasa konsultasi...</p>
+          <p className="mt-4 text-gray-600">Memuat data pelatihan...</p>
         </div>
       </div>
     );
@@ -78,17 +127,17 @@ function ManageConsultingServicesPage() {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-black rounded-lg">
-                <Briefcase className="h-6 w-6 text-white" />
+                <GraduationCap className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Manajemen Jasa Konsultasi</h1>
-                <p className="text-gray-500 mt-1">Kelola semua jasa konsultasi yang ditawarkan</p>
+                <h1 className="text-3xl font-bold text-gray-900">Manajemen Pelatihan</h1>
+                <p className="text-gray-500 mt-1">Kelola workshop dan kelas hidroponik</p>
               </div>
             </div>
             <Link href="/dashboard/services/create">
-              <Button className="bg-black hover:bg-gray-800">
+              <Button className="bg-black hover:bg-gray-800 text-white">
                 <PlusCircle className="h-4 w-4 mr-2" />
-                Tambah Jasa Konsultasi
+                Tambah Pelatihan
               </Button>
             </Link>
           </div>
@@ -99,7 +148,7 @@ function ManageConsultingServicesPage() {
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Jasa</p>
+                <p className="text-sm text-gray-600">Total Kelas</p>
                 <p className="text-2xl font-bold text-gray-900">{services.length}</p>
               </div>
               <div className="p-2 bg-gray-100 rounded-lg">
@@ -141,13 +190,12 @@ function ManageConsultingServicesPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {services.length === 0 ? (
             <div className="p-12 text-center">
-              <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Belum ada jasa Pelatihan</h3>
-              <p className="text-gray-500">Tambahkan jasa Pelatihan pertama Anda untuk memulai</p>
+              <GraduationCap className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Belum ada data pelatihan</h3>
               <Link href="/dashboard/services/create">
-                <Button className="mt-4 bg-black hover:bg-gray-800">
+                <Button className="mt-4 bg-black hover:bg-gray-800 text-white">
                   <PlusCircle className="h-4 w-4 mr-2" />
-                  Tambah Jasa Pelatihan
+                  Tambah Sekarang
                 </Button>
               </Link>
             </div>
@@ -156,145 +204,65 @@ function ManageConsultingServicesPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50 border-b border-gray-200">
-                    <TableHead className="font-semibold text-gray-700">
-                      <div className="flex items-center gap-2">
-                        <Hash className="h-4 w-4" />
-                        ID
-                      </div>
-                    </TableHead>
+                    <TableHead className="font-semibold text-gray-700"><Hash className="h-4 w-4 inline mr-1"/> ID</TableHead>
                     <TableHead className="font-semibold text-gray-700">Gambar</TableHead>
-                    <TableHead className="font-semibold text-gray-700">
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="h-4 w-4" />
-                        Nama Jasa
-                      </div>
-                    </TableHead>
-                    <TableHead className="font-semibold text-gray-700">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
-                        Harga
-                      </div>
-                    </TableHead>
+                    <TableHead className="font-semibold text-gray-700"><GraduationCap className="h-4 w-4 inline mr-1"/> Nama Pelatihan</TableHead>
+                    <TableHead className="font-semibold text-gray-700"><DollarSign className="h-4 w-4 inline mr-1"/> Harga</TableHead>
                     <TableHead className="text-right font-semibold text-gray-700">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {services.map((service, index) => (
-                    <TableRow 
-                      key={service.id}
-                      className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-gray-50 transition-colors border-b border-gray-100`}
-                    >
-                      <TableCell className="font-medium">
-                        <span className="inline-flex items-center gap-1 text-gray-900">
-                          <span className="text-gray-400">#</span>
-                          <span className="font-semibold">{service.id.toString().padStart(5, '0')}</span>
-                        </span>
-                      </TableCell>
+                    <TableRow key={service.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-gray-50 transition-colors`}>
+                      <TableCell className="font-medium">#{service.id}</TableCell>
                       <TableCell>
-                        {service.imageUrl ? (
-                          <img src={service.imageUrl} alt={service.name} className="h-12 w-12 rounded-md object-cover" />
-                        ) : (
-                          <div className="h-12 w-12 rounded-md bg-gray-100 flex items-center justify-center">
-                            <Briefcase className="h-6 w-6 text-gray-400" />
-                          </div>
-                        )}
+                        <div className="h-12 w-12 rounded-md bg-gray-100 overflow-hidden">
+                           {service.imageUrl ? (
+                             <img src={service.imageUrl} alt={service.name} className="h-full w-full object-cover" />
+                           ) : (
+                             <GraduationCap className="h-6 w-6 text-gray-400 m-auto mt-3" />
+                           )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <p className="font-medium text-gray-900">{service.name}</p>
-                        {service.description && (
-                          <p className="text-sm text-gray-500 mt-1 line-clamp-1">{service.description}</p>
-                        )}
+                        <p className="text-xs text-gray-500 truncate max-w-[200px]">{service.description}</p>
                       </TableCell>
+                      <TableCell>Rp {service.price.toLocaleString('id-ID')}</TableCell>
                       <TableCell>
-                        <span className="font-semibold text-gray-900">
-                          Rp {service.price.toLocaleString('id-ID')}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex justify-end gap-2">
+                          
+                          {/* --- EDIT DIALOG --- */}
                           <Dialog open={isDialogOpen && selectedService?.id === service.id} onOpenChange={setIsDialogOpen}>
                             <DialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                className="h-8 w-8 p-0 hover:bg-gray-100"
-                                onClick={() => {
-                                  setSelectedService(service);
-                                  setIsDialogOpen(true);
-                                }}
-                              >
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100" onClick={() => handleEditClick(service)}>
                                 <Eye className="h-4 w-4 text-gray-600" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-[500px]">
+                            <DialogContent>
                               <DialogHeader>
-                                <DialogTitle className="text-xl font-bold">Detail & Edit Jasa</DialogTitle>
-                                <DialogDescription>
-                                  Lihat dan edit informasi jasa Pelatihan
-                                </DialogDescription>
+                                <DialogTitle>Edit Pelatihan</DialogTitle>
                               </DialogHeader>
-                              {selectedService && (
-                                <div className="py-4 space-y-4">
-                                  <div>
-                                    <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-                                      Nama Jasa
-                                    </Label>
-                                    <Input 
-                                      id="name" 
-                                      value={selectedService.name} 
-                                      onChange={(e) => setSelectedService({...selectedService, name: e.target.value})}
-                                      className="mt-1.5"
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label htmlFor="description" className="text-sm font-medium text-gray-700">
-                                      Deskripsi
-                                    </Label>
-                                    <Textarea 
-                                      id="description" 
-                                      value={selectedService.description || ''} 
-                                      onChange={(e) => setSelectedService({...selectedService, description: e.target.value})}
-                                      className="mt-1.5 min-h-[100px]"
-                                      placeholder="Tambahkan deskripsi jasa konsultasi..."
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label htmlFor="price" className="text-sm font-medium text-gray-700">
-                                      Harga (Rp)
-                                    </Label>
-                                    <Input 
-                                      id="price" 
-                                      type="number" 
-                                      value={selectedService.price} 
-                                      onChange={(e) => setSelectedService({...selectedService, price: Number(e.target.value)})}
-                                      className="mt-1.5"
-                                    />
-                                  </div>
+                              <div className="py-4 space-y-4">
+                                <div>
+                                  <Label>Nama Pelatihan</Label>
+                                  <Input value={editFormData.name} onChange={(e) => setEditFormData({...editFormData, name: e.target.value})} />
                                 </div>
-                              )}
-                              <DialogFooter>
-                                <Button 
-                                  variant="outline" 
-                                  onClick={() => setIsDialogOpen(false)}
-                                >
-                                  Batal
-                                </Button>
-                                <Button 
-                                  onClick={handleSaveChanges}
-                                  className="bg-black hover:bg-gray-800"
-                                >
-                                  Simpan Perubahan
-                                </Button>
-                              </DialogFooter>
+                                <div>
+                                  <Label>Harga</Label>
+                                  <Input type="number" value={editFormData.price} onChange={(e) => setEditFormData({...editFormData, price: Number(e.target.value)})} />
+                                </div>
+                                <div>
+                                  <Label>Deskripsi</Label>
+                                  <Textarea value={editFormData.description} onChange={(e) => setEditFormData({...editFormData, description: e.target.value})} />
+                                </div>
+                              </div>
+                              <Button onClick={handleSaveChanges} className="w-full bg-black text-white">Simpan</Button>
                             </DialogContent>
                           </Dialog>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDelete(service.id)}
-                            className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4" />
+
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-red-50" onClick={() => handleDelete(service.id)}>
+                            <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
                         </div>
                       </TableCell>
@@ -310,4 +278,5 @@ function ManageConsultingServicesPage() {
   );
 }
 
-export default withAuth(ManageConsultingServicesPage);
+// 3. PASTIKAN NAMA EXPORT BENAR
+export default withAuth(ManageTrainingServicesPage);

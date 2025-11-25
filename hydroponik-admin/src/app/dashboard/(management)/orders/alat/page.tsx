@@ -1,21 +1,22 @@
 'use client';
+
 import { useEffect, useState } from 'react';
-import withAuth from '../../../withAuth';
-import api from '../../../../lib/api';
+import withAuth from '../../../withAuth'; // Sesuaikan path jika perlu
+import api from '../../../../lib/api'; // Sesuaikan path jika perlu
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye, Trash2, Package, Calendar, User, Hash, ShoppingCart, AlertCircle } from 'lucide-react';
+import { Eye, Trash2, Package, Calendar, User, Hash, ShoppingCart, AlertCircle, Truck, CheckCircle } from 'lucide-react';
+// Import Dialog & Form Edit
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { OrderEditForm } from '@/components/ui/OrderEditForm'; // Pastikan path ini benar
 
-// Definisikan tipe data
 interface Order {
   id: number;
   createdAt: string;
@@ -28,10 +29,13 @@ interface Order {
 function AlatOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // State untuk Popup Edit
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
 
   const fetchOrders = async () => {
     try {
-      // Panggil endpoint dengan filter kategori "Alat Hidroponik"
+      // Anda bisa sesuaikan query param category jika ingin filter spesifik
       const response = await api.get('/orders/admin/all?category=Alat Hidroponik'); 
       setOrders(response.data);
     } catch (error) {
@@ -54,6 +58,12 @@ function AlatOrdersPage() {
         alert('Gagal menghapus pesanan.');
       }
     }
+  };
+
+  // Fungsi Callback setelah edit berhasil
+  const handleEditFinished = () => {
+    setEditingOrder(null); // Tutup dialog
+    fetchOrders(); // Refresh data
   };
 
   const getStatusColor = (status: string) => {
@@ -93,22 +103,22 @@ function AlatOrdersPage() {
                 <p className="text-gray-500 mt-1">Kelola dan pantau semua pesanan pelanggan</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm text-gray-500">Total Pesanan</p>
-                <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
-              </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Total Pesanan</p>
+              <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
             </div>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+        {/* Stats Cards - 5 Kolom Sejajar */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          
+          {/* Card 1: Total Transaksi */}
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Transaksi</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Total Transaksi</p>
+                <p className="text-xl font-bold text-gray-900">
                   Rp {orders.reduce((sum, order) => sum + order.totalAmount, 0).toLocaleString('id-ID')}
                 </p>
               </div>
@@ -117,28 +127,13 @@ function AlatOrdersPage() {
               </div>
             </div>
           </div>
-          
-          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Pesanan Hari Ini</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {orders.filter(order => 
-                    new Date(order.createdAt).toDateString() === new Date().toDateString()
-                  ).length}
-                </p>
-              </div>
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <Calendar className="h-5 w-5 text-gray-600" />
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+          {/* Card 2: Pending */}
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Pending</p>
+                <p className="text-xl font-bold text-gray-900">
                   {orders.filter(order => order.status.toLowerCase() === 'pending').length}
                 </p>
               </div>
@@ -148,19 +143,51 @@ function AlatOrdersPage() {
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+           {/* Card 3: Dikemas */}
+           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Selesai</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Dikemas</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {orders.filter(order => order.status.toLowerCase() === 'processing').length}
+                </p>
+              </div>
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Package className="h-5 w-5 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Diperjalanan (SHIPPED) - INI YANG BARU DITAMBAHKAN */}
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Diperjalanan</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {orders.filter(order => order.status.toLowerCase() === 'shipped').length}
+                </p>
+              </div>
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Truck className="h-5 w-5 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 5: Selesai */} 
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Selesai</p>
+                <p className="text-xl font-bold text-gray-900">
                   {orders.filter(order => order.status.toLowerCase() === 'completed').length}
                 </p>
               </div>
               <div className="p-2 bg-green-100 rounded-lg">
-                <Package className="h-5 w-5 text-green-600" />
+                <CheckCircle className="h-5 w-5 text-green-600" />
               </div>
             </div>
           </div>
+
         </div>
 
         {/* Table Section */}
@@ -176,32 +203,12 @@ function AlatOrdersPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50 border-b border-gray-200">
-                    <TableHead className="font-semibold text-gray-700">
-                      <div className="flex items-center gap-2">
-                        <Hash className="h-4 w-4" />
-                        ID
-                      </div>
-                    </TableHead>
-                    <TableHead className="font-semibold text-gray-700">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        Pelanggan
-                      </div>
-                    </TableHead>
-                    <TableHead className="font-semibold text-gray-700">
-                      <div className="flex items-center gap-2">
-                        <Package className="h-4 w-4" />
-                        Item
-                      </div>
-                    </TableHead>
+                    <TableHead className="font-semibold text-gray-700"><Hash className="h-4 w-4 inline mr-1"/> ID</TableHead>
+                    <TableHead className="font-semibold text-gray-700"><User className="h-4 w-4 inline mr-1"/> Pelanggan</TableHead>
+                    <TableHead className="font-semibold text-gray-700"><Package className="h-4 w-4 inline mr-1"/> Item</TableHead>
                     <TableHead className="font-semibold text-gray-700">Total</TableHead>
                     <TableHead className="font-semibold text-gray-700">Status</TableHead>
-                    <TableHead className="font-semibold text-gray-700">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        Tanggal
-                      </div>
-                    </TableHead>
+                    <TableHead className="font-semibold text-gray-700"><Calendar className="h-4 w-4 inline mr-1"/> Tanggal</TableHead>
                     <TableHead className="text-right font-semibold text-gray-700">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -212,10 +219,8 @@ function AlatOrdersPage() {
                       className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-gray-50 transition-colors border-b border-gray-100`}
                     >
                       <TableCell className="font-medium">
-                        <span className="inline-flex items-center gap-1 text-gray-900">
-                          <span className="text-gray-400">#</span>
-                          <span className="font-semibold">{order.id.toString().padStart(5, '0')}</span>
-                        </span>
+                        <span className="text-gray-400">#</span>
+                        <span className="font-semibold">{order.id.toString().padStart(5, '0')}</span>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
@@ -248,29 +253,40 @@ function AlatOrdersPage() {
                       <TableCell>
                         <div className="space-y-1">
                           <p className="text-sm text-gray-900">
-                            {new Date(order.createdAt).toLocaleDateString('id-ID', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric'
-                            })}
+                            {new Date(order.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {new Date(order.createdAt).toLocaleTimeString('id-ID', {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                            {new Date(order.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-end gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            className="h-8 w-8 p-0 hover:bg-gray-100"
-                          >
-                            <Eye className="h-4 w-4 text-gray-600" />
-                          </Button>
+                          
+                          {/* --- EDIT BUTTON (POPUP) --- */}
+                          <Dialog open={editingOrder?.id === order.id} onOpenChange={(isOpen) => !isOpen && setEditingOrder(null)}>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => setEditingOrder(order)}
+                                className="h-8 w-8 p-0 hover:bg-gray-100"
+                              >
+                                <Eye className="h-4 w-4 text-gray-600" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Kelola Pesanan #{order.id}</DialogTitle>
+                              </DialogHeader>
+                              {/* Panggil Form Edit */}
+                              {editingOrder && (
+                                <OrderEditForm order={editingOrder} onFinished={handleEditFinished} />
+                              )}
+                            </DialogContent>
+                          </Dialog>
+                          {/* --------------------------- */}
+
                           <Button 
                             variant="ghost" 
                             size="sm"

@@ -32,7 +32,7 @@ interface Service {
   id: number;
   name: string;
   price: number;
-  type: string;
+  categoryId: number;
   description: string | null;
   imageUrl: string | null; // <-- Tambahkan imageUrl
 }

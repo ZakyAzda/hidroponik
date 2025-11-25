@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ImageUpload } from '@/components/ui/ImageUpload';
-import { ArrowLeft, Package, DollarSign, Layers, FileText, Image, Archive } from 'lucide-react';
+import { ArrowLeft, Package, DollarSign, Image, Archive } from 'lucide-react';
 
 interface Category {
   id: number;
@@ -240,7 +240,8 @@ function CreateProductPage() {
                       Upload Gambar <span className="text-red-500">*</span>
                     </Label>
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-gray-400 transition-colors">
-                      <ImageUpload onUploadSuccess={handleUploadSuccess} />
+                      {/* --- PERBAIKAN DI SINI: TAMBAHKAN endpoint="products" --- */}
+                      <ImageUpload endpoint="products" onUploadSuccess={handleUploadSuccess} />
                     </div>
                     {formData.imageUrl && (
                       <div className="mt-4">

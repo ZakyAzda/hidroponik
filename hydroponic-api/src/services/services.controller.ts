@@ -23,27 +23,33 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles, UserRole } from 'src/auth/decorators/roles.decorator';
 
 @Controller('services')
-@UseGuards(AuthGuard, RolesGuard)
+// HAPUS @UseGuards DARI SINI AGAR GET BISA DIAKSES PUBLIK
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
+  // --- HANYA ADMIN YANG BOLEH CREATE ---
   @Post()
+  @UseGuards(AuthGuard, RolesGuard) // <-- Pasang Guard Disini
   @Roles(UserRole.ADMIN)
   create(@Body() createServiceDto: CreateServiceDto) {
     return this.servicesService.create(createServiceDto);
   }
 
+  // --- PUBLIK BOLEH LIHAT (TANPA GUARD) ---
   @Get()
   findAll(@Query('categoryId', new ParseIntPipe({ optional: true })) categoryId?: number) {
     return this.servicesService.findAll(categoryId);
   }
 
+  // --- PUBLIK BOLEH LIHAT DETAIL (TANPA GUARD) ---
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.servicesService.findOne(id);
   }
 
+  // --- HANYA ADMIN YANG BOLEH UPDATE ---
   @Patch(':id')
+  @UseGuards(AuthGuard, RolesGuard) // <-- Pasang Guard Disini
   @Roles(UserRole.ADMIN)
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -52,13 +58,17 @@ export class ServicesController {
     return this.servicesService.update(id, updateServiceDto);
   }
 
+  // --- HANYA ADMIN YANG BOLEH HAPUS ---
   @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard) // <-- Pasang Guard Disini
   @Roles(UserRole.ADMIN)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.servicesService.remove(id);
   }
 
+  // --- HANYA ADMIN YANG BOLEH UPLOAD ---
   @Post('upload')
+  @UseGuards(AuthGuard, RolesGuard) // <-- Pasang Guard Disini
   @Roles(UserRole.ADMIN)
   @UseInterceptors(
     FileInterceptor('file', {

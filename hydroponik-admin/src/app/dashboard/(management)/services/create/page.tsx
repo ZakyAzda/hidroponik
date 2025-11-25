@@ -128,7 +128,7 @@ function CreateServicePage() {
               </CardHeader>
               <CardContent className="pt-6">
                 <ImageUpload
-                  endpoint="/services/upload"
+                  endpoint="services"
                   onUploadSuccess={handleImageUploadSuccess}
                 />
                 {formData.imageUrl && (

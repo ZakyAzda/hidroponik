@@ -4,6 +4,7 @@ import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 // 1. IMPOR DISINI
 import LoginModal from "@/components/auth/LoginModal"; 
+import Script from "next/script";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -13,16 +14,22 @@ export const metadata: Metadata = {
   description: "Toko Hidroponik Terbaik",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {/* SCRIPT MIDTRANS (SANDBOX) */}
+        <Script 
+          src="https://app.sandbox.midtrans.com/snap/snap.js"
+          data-client-key="SB-Mid-client-XXXXXXXXXXXXXXXX" // GANTI DENGAN CLIENT KEY KAMU!
+          strategy="lazyOnload"
+        />
+        
         <AuthProvider>
           {children}
-          
-          {/* 2. LETAKKAN DISINI (DI BAWAH CHILDREN) */}
           <LoginModal /> 
-          
         </AuthProvider>
       </body>
     </html>

@@ -5,24 +5,40 @@ import {
   IsNotEmpty,
   IsPositive,
   ValidateNested,
+  IsEnum, // <-- Import Baru
 } from 'class-validator';
 
-// Ini adalah aturan untuk setiap objek di dalam array "items"
+// Kita definisikan Enum manual atau import dari Prisma Client jika bisa
+export enum PaymentMethodDto {
+  BANK_TRANSFER = 'BANK_TRANSFER',
+  GOPAY = 'GOPAY',
+  OVO = 'OVO',
+  COD = 'COD' // Tambahan jika ingin fitur COD
+}
+
 class OrderItemDto {
   @IsInt()
   @IsNotEmpty()
   productId: number;
 
   @IsInt()
-  @IsPositive() // Jumlah tidak boleh 0 atau negatif
+  @IsPositive()
   @IsNotEmpty()
   quantity: number;
 }
 
-// Ini adalah aturan untuk body utama
 export class CreateOrderDto {
   @IsArray()
-  @ValidateNested({ each: true }) // Memberitahu validator untuk memeriksa setiap objek di dalam array ini
-  @Type(() => OrderItemDto) // Menentukan tipe dari setiap objek di dalam array
+  @ValidateNested({ each: true })
+  @Type(() => OrderItemDto)
   items: OrderItemDto[];
+
+  // --- TAMBAHAN PENTING ---
+  @IsNotEmpty()
+  @IsEnum(PaymentMethodDto) // Validasi input harus sesuai Enum
+  paymentMethod: PaymentMethodDto; 
+
+  @IsInt()
+  @IsNotEmpty()
+  addressId: number;
 }

@@ -6,7 +6,7 @@ npm-debug.log*
 /hydroponic-api/node_modules
 /hydroponic-api/dist
 /hydroponic-api/.env
-
+/hydroponic-api/public/uploads
 # Frontend - hydroponik-admin
 /hydroponik-admin/node_modules
 /hydroponik-admin/.next

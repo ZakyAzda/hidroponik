@@ -11,6 +11,14 @@ export class ProductsService {
   findAll(categoryId?: number) {
     return this.prisma.product.findMany({
       where: categoryId ? { categoryId: categoryId } : {},
+      // --- TAMBAHKAN BARIS INI ---
+      include: {
+        category: true, // <-- INI KUNCINYA! Agar nama kategori ikut terkirim
+      },
+      // ---------------------------
+      orderBy: {
+        id: 'desc' // (Opsional) Biar produk baru muncul paling atas
+      }
     });
   }
 

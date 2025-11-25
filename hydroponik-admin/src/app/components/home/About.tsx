@@ -1,9 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import React from 'react';
+import Link from 'next/link'; // <--- 1. Jangan lupa import Link
 import { Reveal } from '@/components/ui/Reveal';
+import { ArrowRight } from 'lucide-react'; // <--- 2. Import Icon Panah
 
 const About = () => {
-  return ( // <--- PASTIKAN ADA TANDA KURUNG BIASA INI
+  return (
     <section className="relative bg-[#F4FFF8] py-24 md:py-32 px-6 overflow-hidden">
       <div className="container mx-auto max-w-7xl relative z-10">
 
@@ -24,9 +26,7 @@ const About = () => {
           {/* Left Column: Image */}
           <div className="relative">
             <Reveal delay={300}>
-
               <div className="absolute inset-0 border-4 border-[#70B398] rounded-[24px] transform -translate-x-3 -translate-y-3 opacity-30 pointer-events-none hidden md:block" />
-
               <div className="w-full h-80 md:h-[400px] rounded-3xl overflow-hidden shadow-2xl relative group bg-white">
                 <img
                   src="https://images.unsplash.com/photo-1517457210348-1cd772ce8bd8?w=800&auto=format&fit=crop"
@@ -61,11 +61,26 @@ const About = () => {
                 </p>
               </div>
             </Reveal>
+
+            {/* --- 3. INI TOMBOL BARU NYA LEK --- */}
+            <Reveal delay={700}>
+              <div className="pt-6">
+                <Link 
+                  href="/tentang-kami" 
+                  className="group inline-flex items-center gap-2 px-8 py-3.5 bg-[#3E8467] text-white font-bold rounded-full shadow-lg hover:bg-[#2F5E4D] hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                >
+                  <span>Baca Cerita Kami</span>
+                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />
+                </Link>
+              </div>
+            </Reveal>
+            {/* ----------------------------------- */}
+
           </div>
         </div>
       </div>
     </section>
-  ); // <--- PASTIKAN ADA TANDA KURUNG BIASA INI
+  );
 };
 
 export default About;
