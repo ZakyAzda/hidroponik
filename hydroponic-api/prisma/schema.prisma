@@ -10,23 +10,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 // =================== PENGGUNA & KELENGKAPANNYA ===================
 
 model User {
-  id                Int                 @id @default(autoincrement())
-  email             String              @unique
-  name              String
-  password          String
-  role              UserRole            @default(CUSTOMER)
-  createdAt         DateTime            @default(now())
+  id              Int              @id @default(autoincrement())
+  email           String           @unique
+  name            String
+  password        String
+  role            UserRole         @default(CUSTOMER)
+  createdAt       DateTime         @default(now())
 
-  // Relasi: Satu pengguna punya banyak item ini
-  addresses         Address[]
-  orders            Order[]
-  serviceBookings   ServiceBooking[]
-  reviews           Review[]
-  articles          Article[]
+  // Relasi
+  addresses       Address[]
+  orders          Order[]
+  serviceBookings ServiceBooking[]
+  reviews         Review[]
+  articles        Article[]
 }
 
 enum UserRole {
@@ -42,51 +41,50 @@ model Address {
   fullAddress   String  @db.Text
   isPrimary     Boolean @default(false)
 
-  // Foreign Key ke User
+  // Foreign Key ke User (Cascade agar alamat terhapus jika user dihapus)
   userId        Int
-  user          User    @relation(fields: [userId], references: [id])
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
 
 // =================== PRODUK & KATEGORI (Alat & Sayuran) ===================
 
 model ProductCategory {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
-  products  Product[]
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  products Product[]
 }
 
 model Product {
-  id            Int             @id @default(autoincrement())
-  name          String
-  imageUrl      String? 
-  description   String?         @db.Text
-  price         Int
-  stock         Int             @default(0)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id          Int             @id @default(autoincrement())
+  name        String
+  imageUrl    String?
+  description String?         @db.Text
+  price       Int
+  stock       Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   // Foreign Key ke ProductCategory
-  categoryId    Int
-  category      ProductCategory @relation(fields: [categoryId], references: [id])
-  
-  // Relasi: Satu produk punya banyak item ini
-  orderItems    OrderItem[]
-  reviews       Review[]
+  categoryId  Int
+  category    ProductCategory @relation(fields: [categoryId], references: [id])
+   
+  // Relasi (Cascade Delete agar produk bisa dihapus walau sudah ada di order/review)
+  orderItems  OrderItem[]
+  reviews     Review[]
 }
 
 model Review {
-  id        Int      @id @default(autoincrement())
-  rating    Int      // Rating bintang dari 1 sampai 5
-  comment   String?  @db.Text
-  status    ReviewStatus @default(PENDING) // <-- TAMBAHKAN BARIS INI
-  createdAt DateTime @default(now())
-  
+  id        Int          @id @default(autoincrement())
+  rating    Int          // Rating bintang dari 1 sampai 5
+  comment   String?      @db.Text
+  status    ReviewStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+   
   // Foreign Keys
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   productId Int
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 enum ReviewStatus {
@@ -95,66 +93,60 @@ enum ReviewStatus {
   REJECTED
 }
 
-
 // =================== TRANSAKSI (Pesanan, Jasa, Pembayaran) ===================
 
 model Order {
-  id              Int       @id @default(autoincrement())
-  userId          Int
-  user            User      @relation(fields: [userId], references: [id])
-  totalAmount     Int       // <-- PASTIKAN BARIS INI ADA
-  status          String    @default("PENDING")
-  createdAt       DateTime  @default(now())
+  id          Int         @id @default(autoincrement())
+  userId      Int
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalAmount Int
+  status      String      @default("PENDING") // PENDING, PROCESSING, SHIPPED, COMPLETED, CANCELLED
+  createdAt   DateTime    @default(now())
 
   // Relasi
-  items           OrderItem[]
-  payment         Payment?
+  items       OrderItem[]
+  payment     Payment?
 }
 
 model OrderItem {
   id        Int     @id @default(autoincrement())
   quantity  Int
-  price     Int     // Harga produk saat dibeli (untuk arsip)
-  
+  price     Int     // Harga produk saat dibeli (snapshot)
+   
   // Foreign Keys
   orderId   Int
-  order     Order   @relation(fields: [orderId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId Int
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
-// BUAT MODEL BARU INI
+// =================== JASA & LAYANAN ===================
+
 model ServiceCategory {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique // Contoh: "Jasa Instalasi", "Jasa Pelatihan"
-  services  Service[]
+  id       Int       @id @default(autoincrement())
+  name     String    @unique 
+  services Service[]
 }
 
 model Service {
-  id              Int               @id @default(autoincrement())
-  name            String
-  imageUrl        String?           // <-- TAMBAHKAN BARIS INI
-  description     String?           @db.Text
-  price           Int
-  
-  // HAPUS BARIS 'type' YANG LAMA
-  // type            ServiceType
-
-  // TAMBAHKAN RELASI KE ServiceCategory
-  categoryId      Int
-  category        ServiceCategory   @relation(fields: [categoryId], references: [id])
-
-  bookings        ServiceBooking[]
+  id          Int             @id @default(autoincrement())
+  name        String
+  imageUrl    String?         // <-- Sudah ada
+  description String?         @db.Text
+  price       Int
+   
+  // Relasi
+  categoryId  Int
+  category    ServiceCategory @relation(fields: [categoryId], references: [id])
+  bookings    ServiceBooking[]
 }
 
 model ServiceBooking {
   id            Int      @id @default(autoincrement())
   userId        Int
-  user          User     @relation(fields: [userId], references: [id])
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   serviceId     Int
-  // UBAH BARIS DI BAWAH INI
   service       Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  // AKHIR PERUBAHAN
   scheduledDate DateTime
   status        String   @default("REQUESTED")
   notes         String?
@@ -163,20 +155,23 @@ model ServiceBooking {
   payment       Payment?
 }
 
+// =================== PEMBAYARAN ===================
+
 model Payment {
   id               Int           @id @default(autoincrement())
   amount           Int
   status           PaymentStatus @default(PENDING)
   method           PaymentMethod
-  transactionId    String?       @unique // ID dari payment gateway (Midtrans, dll.)
+  transactionId    String?       @unique // ID dari Midtrans
   paymentDate      DateTime?
   createdAt        DateTime      @default(now())
 
-  // Foreign Key (satu pembayaran hanya untuk satu item)
-  orderId          Int?          @unique
-  order            Order?        @relation(fields: [orderId], references: [id])
-  serviceBookingId Int?          @unique
-  serviceBooking   ServiceBooking? @relation(fields: [serviceBookingId], references: [id])
+  // Foreign Key (Relasi ke Order ATAU Booking)
+  orderId          Int?            @unique
+  order            Order?          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  serviceBookingId Int?            @unique
+  serviceBooking   ServiceBooking? @relation(fields: [serviceBookingId], references: [id], onDelete: Cascade)
 }
 
 enum PaymentStatus {
@@ -192,20 +187,17 @@ enum PaymentMethod {
   COD
 }
 
-
-
-
 // =================== KONTEN & EDUKASI ===================
 
 model Article {
-  id          Int       @id @default(autoincrement())
-  title       String    @unique
-  content     String    @db.Text
-  imageUrl    String?   // Foto/gambar utama artikel
-  isPublished Boolean   @default(false)
-  createdAt   DateTime  @default(now())
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  content     String   @db.Text
+  imageUrl    String?
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
-  // Foreign Key ke User (Admin)
+  // Foreign Key
   authorId    Int
-  author      User      @relation(fields: [authorId], references: [id])
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }

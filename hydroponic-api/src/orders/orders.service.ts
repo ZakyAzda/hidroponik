@@ -246,6 +246,24 @@ export class OrdersService {
     });
   }
 
+  async updateStatus(id: number, status: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Pesanan tidak ditemukan.');
+    }
+
+    // You might want to add validation for the status string here
+    // For example, using an enum or a predefined list of valid statuses
+
+    return this.prisma.order.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
   async handleNotification(notification: any) {
     const status = notification.transaction_status;
     const orderIdStr = notification.order_id;
