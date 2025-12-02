@@ -322,4 +322,48 @@ export class OrdersService {
       console.log(`✅ Order #${dbOrderId} updated to ${orderStatus}`);
     }
   }
+  async retryPayment(orderId: number, userId: number) {
+    // 1. Cari Order & User
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, userId: userId },
+      include: { user: true }
+    });
+
+    if (!order) throw new NotFoundException('Pesanan tidak ditemukan.');
+    if (order.status !== 'PENDING') throw new BadRequestException('Pesanan ini tidak bisa dibayar ulang.');
+
+    // 2. Cari Alamat User (Kita ambil alamat utama sebagai default untuk data customer midtrans)
+    const address = await this.prisma.address.findFirst({
+      where: { userId: userId, isPrimary: true }
+    }) || await this.prisma.address.findFirst({ where: { userId: userId } });
+
+    // 3. Buat Parameter Midtrans (Generate ID Baru biar gak error "Order ID Duplicate")
+    const parameter = {
+      transaction_details: {
+        order_id: `ORDER-${order.id}-${Date.now()}`, // ID Unik Baru
+        gross_amount: order.totalAmount,
+      },
+      credit_card: { secure: true },
+      customer_details: {
+        first_name: order.user.name,
+        email: order.user.email,
+        phone: address?.phoneNumber || '08123456789', // Fallback jika alamat dihapus
+        billing_address: { address: address?.fullAddress || '-' },
+        shipping_address: {
+          first_name: address?.recipientName || order.user.name,
+          phone: address?.phoneNumber || '08123456789',
+          address: address?.fullAddress || '-'
+        }
+      },
+    };
+
+    // 4. Minta Token ke Midtrans
+    try {
+      const transaction = await this.snap.createTransaction(parameter);
+      return { midtransToken: transaction.token };
+    } catch (error) {
+      console.error("Midtrans Retry Error:", error);
+      throw new BadRequestException("Gagal memproses pembayaran ulang.");
+    }
+  }
 }

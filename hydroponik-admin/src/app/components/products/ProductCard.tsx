@@ -2,112 +2,113 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { useCartStore } from '@/app/lib/useCartStore'; 
+import { useAuthStore } from '@/store/authStore'; 
 import { useRouter } from 'next/navigation';
-import { useCartStore } from '@/app/lib/useCartStore';
-import { X, Minus, Plus, ArrowRight, Loader2 } from 'lucide-react';
 
-interface QuickBuyModalProps {
+interface ProductCardProps {
   product: any;
-  isOpen: boolean;
-  onClose: () => void;
+  // --- PERBAIKAN: TANDA TANYA (?) AGAR OPTIONAL ---
+  onOrderClick?: (product: any) => void; 
 }
 
-export default function QuickBuyModal({ product, isOpen, onClose }: QuickBuyModalProps) {
+const ProductCard = ({ product, onOrderClick }: ProductCardProps) => {
   const router = useRouter();
-  const addItem = useCartStore((state) => state.addItem);
-  const [quantity, setQuantity] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  // Sekarang buyNow sudah ada di store, jadi tidak akan error lagi
+  const { addItem, buyNow } = useCartStore(); 
+  const openLogin = useAuthStore((state) => state.openLogin);
+  const [isAdding, setIsAdding] = useState(false);
 
-  if (!isOpen || !product) return null;
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem('access_token');
+    if (!token) { openLogin(); return; }
 
-  const handleQuantity = (type: 'inc' | 'dec') => {
-    if (type === 'dec' && quantity > 1) setQuantity(q => q - 1);
-    if (type === 'inc') setQuantity(q => q + 1);
+    setIsAdding(true);
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: Number(product.price),
+      imageUrl: product.imageUrl,
+    }, false);
+
+    setTimeout(() => setIsAdding(false), 500);
   };
 
-  const handleConfirmOrder = () => {
-    setIsLoading(true);
-    
-    // 1. Masukkan barang ke keranjang (Dengan jumlah yang dipilih)
-    // Kita loop addItem karena fungsi addItem store kamu logic-nya nambah 1 per 1
-    // Atau kita bisa update store kamu biar support quantity langsung (tapi ini cara aman tanpa ubah store):
-    for (let i = 0; i < quantity; i++) {
-      addItem({
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem('access_token');
+    if (!token) { openLogin(); return; }
+
+    // Cek apakah parent memberikan fungsi buka popup?
+    if (onOrderClick) {
+      onOrderClick(product); // Buka Popup (Hanya di Halaman Produk)
+    } else {
+      // Jika di Landing Page (tidak ada popup), langsung beli 1 biji
+      buyNow({
         id: product.id,
         name: product.name,
         price: Number(product.price),
         imageUrl: product.imageUrl,
-      });
+      }, 1);
+      router.push('/checkout');
     }
-
-    // 2. Delay dikit biar kerasa loading, lalu lempar ke Checkout
-    setTimeout(() => {
-      setIsLoading(false);
-      onClose(); // Tutup modal
-      router.push('/checkout'); // Langsung gas ke checkout
-    }, 500);
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 animate-in fade-in duration-200">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
-
-      {/* Modal Content */}
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
-        
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-[#F4FFF8]">
-          <h3 className="font-bold text-gray-800">Pembelian Langsung</h3>
-          <button onClick={onClose} className="p-1 hover:bg-red-100 hover:text-red-500 rounded-full transition-all">
-            <X size={20} />
-          </button>
+    <div className="group bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 hover:border-[#70B398]">
+      <div className="relative h-56 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50">
+        <img 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+          src={product.imageUrl || "https://placehold.co/400x400?text=No+Image"} 
+          alt={product.name} 
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-[#3E8467] text-[10px] font-bold px-2 py-1 rounded-md shadow-sm">
+          {product.category?.name || 'Umum'}
         </div>
-
-        {/* Body */}
-        <div className="p-6">
-          <div className="flex gap-4 mb-6">
-            <div className="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden relative border flex-shrink-0">
-               {product.imageUrl && <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />}
-            </div>
-            <div>
-               <h4 className="font-bold text-gray-800 line-clamp-2">{product.name}</h4>
-               <p className="text-[#3E8467] font-bold mt-1">
-                 Rp {new Intl.NumberFormat('id-ID').format(product.price)}
-               </p>
-            </div>
+      </div>
+      
+      <div className="p-5">
+        <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-[#3E8467] transition-colors duration-300 line-clamp-1">
+          {product.name}
+        </h3>
+        <p className="text-sm text-gray-500 mb-4 line-clamp-2 h-10 leading-relaxed">
+          {product.description}
+        </p>
+        <div className="w-0 h-0.5 bg-gradient-to-r from-[#70B398] to-[#3E8467] group-hover:w-full transition-all duration-500 mb-4" />
+        
+        <div className="flex justify-between items-center pt-2">
+          <div className="flex flex-col">
+            <span className="text-xs text-gray-400 font-medium mb-0.5">Harga</span>
+            <span className="text-xl font-bold text-[#3E8467] group-hover:scale-105 transition-transform duration-300 inline-block">
+              Rp {new Intl.NumberFormat('id-ID').format(Number(product.price))}
+            </span>
           </div>
-
-          {/* Atur Jumlah */}
-          <div className="flex justify-between items-center mb-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
-             <span className="text-sm font-semibold text-gray-600">Jumlah Beli</span>
-             <div className="flex items-center bg-white rounded-lg border border-gray-200 shadow-sm">
-                <button onClick={() => handleQuantity('dec')} className="p-2 hover:bg-gray-100 text-gray-600 rounded-l-lg"><Minus size={16}/></button>
-                <span className="w-10 text-center font-bold text-gray-800">{quantity}</span>
-                <button onClick={() => handleQuantity('inc')} className="p-2 hover:bg-gray-100 text-gray-600 rounded-r-lg"><Plus size={16}/></button>
-             </div>
+          
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleAddToCart}
+              disabled={isAdding}
+              className={`relative w-10 h-10 flex items-center justify-center rounded-lg border-2 transition-all duration-300 ${isAdding ? "bg-[#3E8467] border-[#3E8467] text-white scale-95" : "border-[#70B398] text-[#70B398] hover:bg-[#70B398] hover:text-white"}`}
+            >
+               {isAdding ? (
+                 <svg className="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+               ) : (
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+               )}
+            </button>
+            <button 
+              onClick={handleBuyNow} 
+              className="bg-[#70B398] text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-[#5fa085] hover:shadow-lg transition-all duration-300 active:scale-95"
+            >
+              Order
+            </button>
           </div>
-
-          {/* Total Preview */}
-          <div className="flex justify-between items-center mb-6 text-sm">
-             <span className="text-gray-500">Subtotal:</span>
-             <span className="font-bold text-lg text-[#3E8467]">
-               Rp {new Intl.NumberFormat('id-ID').format(product.price * quantity)}
-             </span>
-          </div>
-
-          {/* Tombol Aksi */}
-          <button 
-            onClick={handleConfirmOrder}
-            disabled={isLoading}
-            className="w-full py-3.5 bg-[#3E8467] hover:bg-[#2F5E4D] text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95"
-          >
-            {isLoading ? <Loader2 className="animate-spin" /> : (
-              <>Lanjut ke Pembayaran <ArrowRight size={18}/></>
-            )}
-          </button>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ProductCard;

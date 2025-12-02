@@ -4,7 +4,7 @@ import React from 'react';
 
 const Hero = () => {
   return (
-    <section className="bg-[#F4FFF8] pt-36 pb-16 px-6 overflow-hidden"> 
+    <section className="relative bg-transparent py-20 px-6 overflow-hidden"> 
       <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center max-w-6xl">
         
         {/* Left Column: Text Content */}
@@ -20,9 +20,9 @@ const Hero = () => {
 
           {/* Animated Heading */}
           <h1 className="text-4xl md:text-5xl font-bold text-black leading-tight animate-fade-in-up opacity-0 animation-delay-200">
-            🌱 Temukan <br />
+            🌱 Mari belajar  <br />
             <span className="bg-gradient-to-r from-[#70B398] to-[#5fa085] bg-clip-text text-transparent">
-              Keindahan Tanaman
+              Budidaya Hidroponik
             </span> <br />
             di Rumahmu
           </h1>
@@ -44,24 +44,6 @@ const Hero = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </a>
-          </div>
-
-          {/* Animated Stats */}
-          <div className="flex items-center space-x-8 pt-4 animate-fade-in-up opacity-0 animation-delay-500">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-[#70B398]">500+</div>
-              <div className="text-sm text-gray-600">Produk</div>
-            </div>
-            <div className="w-px h-12 bg-gray-300"></div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-[#70B398]">1000+</div>
-              <div className="text-sm text-gray-600">Pelanggan</div>
-            </div>
-            <div className="w-px h-12 bg-gray-300"></div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-[#70B398]">98%</div>
-              <div className="text-sm text-gray-600">Kepuasan</div>
-            </div>
           </div>
         </div>
 

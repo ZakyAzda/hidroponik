@@ -53,8 +53,6 @@ function CreateArticlePage() {
         isPublished,
       };
 
-      console.log('Data yang akan dikirim ke backend:', articleData);
-
       await api.post('/articles', articleData);
       setSuccess(true);
       
@@ -131,9 +129,6 @@ function CreateArticlePage() {
                   className="text-lg font-medium focus-visible:ring-2"
                   disabled={isLoading}
                 />
-                <p className="text-xs text-gray-500">
-                  Judul yang menarik akan membuat pembaca tertarik untuk membaca artikel Anda
-                </p>
               </div>
 
               {/* Content Section */}
@@ -169,10 +164,13 @@ function CreateArticlePage() {
                 <span className="text-xs text-gray-500">(Opsional)</span>
               </div>
               
+              {/* --- PERBAIKAN UTAMA DI SINI --- */}
+              {/* Ganti endpoint="/articles/upload" menjadi endpoint="articles" */}
               <ImageUpload 
-                endpoint="/articles/upload"
+                endpoint="articles" 
                 onUploadSuccess={(url) => setImageUrl(url)} 
               />
+              {/* ------------------------------ */}
               
               {imageUrl && (
                 <div className="mt-4">
@@ -182,6 +180,7 @@ function CreateArticlePage() {
                       src={imageUrl}
                       alt="Preview"
                       className="w-full h-auto max-h-96 object-contain"
+                      loading="lazy"
                     />
                   </div>
                 </div>

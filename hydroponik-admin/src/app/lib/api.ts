@@ -1,26 +1,23 @@
-// src/lib/api.ts
 import axios from 'axios';
-import { useAuthStore } from '../../store/authStore'; // Sesuaikan path jika berbeda
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // Base URL backend Anda
+  baseURL: 'http://localhost:3000', // Pastikan URL backend benar
 });
 
-// Ini adalah "interceptor"
-// Kode ini akan berjalan SEBELUM setiap request dikirim
+// Interceptor: Pasang Token Otomatis
 api.interceptors.request.use(
   (config) => {
-    // Ambil token dari Zustand store
-    const token = useAuthStore.getState().token; // Menggunakan .getState() untuk mengambil state di luar komponen React
+    // Ambil langsung dari localStorage (Lebih aman daripada Store untuk request awal)
+    const token = localStorage.getItem('access_token');
+    
     if (token) {
-      // Jika token ada, tambahkan ke header Authorization
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => {
     return Promise.reject(error);
-  },
+  }
 );
 
 export default api;

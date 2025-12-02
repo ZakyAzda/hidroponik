@@ -15,8 +15,8 @@ interface QuickBuyModalProps {
 export default function QuickBuyModal({ product, isOpen, onClose }: QuickBuyModalProps) {
   const router = useRouter();
   
-  // Ambil fungsi setDirectCheckoutItem
-  const { setDirectCheckoutItem } = useCartStore();
+  // --- PERBAIKAN 1: Ambil fungsi 'buyNow' (Bukan addItem) ---
+  const { buyNow } = useCartStore(); 
   
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,17 +31,17 @@ export default function QuickBuyModal({ product, isOpen, onClose }: QuickBuyModa
   const handleConfirmOrder = () => {
     setIsLoading(true);
     
-    // --- LOGIKA BARU (Jalur VIP) ---
-    // Simpan ke slot khusus, jangan ganggu keranjang utama
-    setDirectCheckoutItem({
-        id: product.id,
-        name: product.name,
-        price: Number(product.price),
-        imageUrl: product.imageUrl,
-        quantity: quantity,
-        selected: true
-    });
+    // --- PERBAIKAN 2: Gunakan Logika 'buyNow' ---
+    // Fungsi ini akan memasukkan barang ke slot VIP (directCheckoutItem)
+    // dan TIDAK akan mengganggu barang lain yang ada di keranjang (items).
+    buyNow({
+      id: product.id,
+      name: product.name,
+      price: Number(product.price),
+      imageUrl: product.imageUrl,
+    }, quantity); // Kirim quantity langsung
 
+    // 3. Pindah ke Checkout
     setTimeout(() => {
       setIsLoading(false);
       onClose();
@@ -51,7 +51,10 @@ export default function QuickBuyModal({ product, isOpen, onClose }: QuickBuyModa
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 animate-in fade-in duration-200">
+      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+
+      {/* Modal Content */}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Header */}
@@ -76,15 +79,17 @@ export default function QuickBuyModal({ product, isOpen, onClose }: QuickBuyModa
             </div>
           </div>
 
+          {/* Atur Jumlah */}
           <div className="flex justify-between items-center mb-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
              <span className="text-sm font-semibold text-gray-600">Jumlah Beli</span>
              <div className="flex items-center bg-white rounded-lg border border-gray-200 shadow-sm">
-                <button onClick={() => handleQuantity('dec')} className="p-2 hover:bg-gray-100 text-gray-600 rounded-l-lg"><Minus size={16}/></button>
+                <button onClick={() => handleQuantity('dec')} className="p-2 hover:bg-gray-100 text-gray-600 rounded-l-lg transition-colors"><Minus size={16}/></button>
                 <span className="w-10 text-center font-bold text-gray-800">{quantity}</span>
-                <button onClick={() => handleQuantity('inc')} className="p-2 hover:bg-gray-100 text-gray-600 rounded-r-lg"><Plus size={16}/></button>
+                <button onClick={() => handleQuantity('inc')} className="p-2 hover:bg-gray-100 text-gray-600 rounded-r-lg transition-colors"><Plus size={16}/></button>
              </div>
           </div>
 
+          {/* Total Preview */}
           <div className="flex justify-between items-center mb-6 text-sm">
              <span className="text-gray-500">Subtotal:</span>
              <span className="font-bold text-lg text-[#3E8467]">
@@ -92,10 +97,11 @@ export default function QuickBuyModal({ product, isOpen, onClose }: QuickBuyModa
              </span>
           </div>
 
+          {/* Tombol Aksi */}
           <button 
             onClick={handleConfirmOrder}
             disabled={isLoading}
-            className="w-full py-3.5 bg-[#3E8467] hover:bg-[#2F5E4D] text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95"
+            className="w-full py-3.5 bg-[#3E8467] hover:bg-[#2F5E4D] text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? <Loader2 className="animate-spin" /> : (
               <>Lanjut ke Pembayaran <ArrowRight size={18}/></>

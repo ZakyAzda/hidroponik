@@ -81,7 +81,7 @@ const Services = () => {
   if (services.length === 0) return null;
 
   return (
-    <section className="py-24 px-6 bg-[#F4FFF8] relative overflow-hidden">
+    <section className="py-24 px-6 bg-transparent relative overflow-hidden">
       
       <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-30"></div>
       <div className="absolute top-20 right-0 w-64 h-64 bg-[#70B398]/10 rounded-full blur-3xl"></div>
@@ -98,7 +98,7 @@ const Services = () => {
                 Layanan <span className="text-[#3E8467]">Profesional</span> Kami
               </h2>
               <p className="text-gray-500">
-                Solusi lengkap untuk membangun ekosistem pertanian modern Anda.
+                Solusi lengkap untuk kebutuhan hidroponik Anda, dari instalasi hingga pelatihan.
               </p>
             </div>
 

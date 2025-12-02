@@ -6,7 +6,7 @@ import { ArrowRight } from 'lucide-react'; // <--- 2. Import Icon Panah
 
 const About = () => {
   return (
-    <section className="relative bg-[#F4FFF8] py-24 md:py-32 px-6 overflow-hidden">
+    <section className="bg-transparent pt-36 pb-16 px-6 overflow-hidden">
       <div className="container mx-auto max-w-7xl relative z-10">
 
         {/* Header Section */}

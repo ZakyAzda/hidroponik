@@ -88,7 +88,7 @@ export default async function ArticleDetailPage({ params }: { params: { id: stri
               </div>
               <div className="flex items-center gap-2">
                 <Clock size={16} />
-                <span>5 Menit Baca</span>
+                <span>{Math.ceil(article.content.split(' ').length / 200)} menit baca</span>
               </div>
             </div>
           </div>
@@ -129,7 +129,6 @@ export default async function ArticleDetailPage({ params }: { params: { id: stri
               </div>
               <div>
                 <p className="font-bold text-gray-900">{article.author?.name || 'Admin'}</p>
-                <p className="text-sm text-gray-500">Tim Ahli Agronomi Arif Hidrofarm</p>
               </div>
             </div>
           </div>

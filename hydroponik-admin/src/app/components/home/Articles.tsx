@@ -53,7 +53,7 @@ const Articles = async () => {
   // Jika tidak ada artikel
   if (!mainArticle) {
     return (
-        <section className="bg-[#F4FFF8] py-20 px-6 relative overflow-hidden">
+        <section className="relative bg-transparent py-20 px-6 overflow-hidden">
             <div className="container mx-auto max-w-7xl relative z-10 text-center">
                <p className="text-gray-500">Belum ada artikel terbaru.</p>
             </div>
@@ -62,7 +62,7 @@ const Articles = async () => {
   }
 
   return (
-    <section className="relative bg-[#F4FFF8] py-20 px-6 overflow-hidden">
+    <section className="relative bg-transparent py-20 px-6 overflow-hidden">
       {/* Decorative Background Elements (Blobs) */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-white/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-white/30 rounded-full blur-[80px] translate-x-1/3 translate-y-1/3 pointer-events-none" />

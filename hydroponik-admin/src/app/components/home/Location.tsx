@@ -5,7 +5,7 @@ import { Reveal } from '@/components/ui/Reveal';
 
 const Location = () => {
   return (
-    <section className="bg-[#F4FFF8] py-24 px-6">
+    <section className="bg-transparent py-24 px-6">
       <div className="container mx-auto max-w-6xl">
 
         {/* Header Section */}
@@ -42,7 +42,7 @@ const Location = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800">Alamat Studio</h3>
+                    <h3 className="text-2xl font-bold text-gray-800">Alamat Budidaya kami</h3>
                   </div>
 
                   <div className="space-y-4 text-gray-600 leading-relaxed pl-2 border-l-2 border-[#70B398]/30">

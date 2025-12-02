@@ -67,4 +67,11 @@ export class OrdersController {
   async handleNotification(@Body() notification: any) {
     return this.ordersService.handleNotification(notification);
   }
+
+  @UseGuards(AuthGuard)
+  @Post(':id/pay')
+  async retryPayment(@Req() req, @Param('id', ParseIntPipe) id: number) {
+    const userId = req.user.userId;
+    return this.ordersService.retryPayment(id, userId);
+  }
 }

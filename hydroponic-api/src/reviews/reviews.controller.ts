@@ -5,11 +5,22 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles, UserRole } from 'src/auth/decorators/roles.decorator';
 import { UpdateReviewStatusDto } from './dto/update-review-status.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Req, Post } from '@nestjs/common';
+import { CreateReviewDto } from './dto/create-review.dto';
+import { ReviewStatus } from '@prisma/client';
 
 @ApiTags('reviews')
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Post()
+  create(@Req() req, @Body() createReviewDto: CreateReviewDto) {
+    const userId = req.user.userId;
+    return this.reviewsService.create(userId, createReviewDto);
+  }
 
   @Get('public')
   findAllApproved() {

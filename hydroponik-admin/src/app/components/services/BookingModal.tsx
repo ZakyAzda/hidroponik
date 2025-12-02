@@ -33,7 +33,7 @@ export default function BookingModal({ serviceName, price, isOpen, onClose }: Bo
     setIsLoading(true);
 
     // GANTI NOMOR WA ADMIN DISINI (Format: 628...)
-    const phoneNumber = "6281234567890"; 
+    const phoneNumber = "6282173885172"; 
     
     const message = `Halo Admin Arif Hidrofarm! 🌱%0A%0ASaya tertarik dengan jasa:%0A🛠️ *${serviceName}*%0A💰 Mulai dari: Rp ${new Intl.NumberFormat('id-ID').format(price)}%0A%0A📋 *Data Diri Saya:*%0ANama: ${formData.name}%0ANo WA: ${formData.phone}%0AAlamat: ${formData.address}%0ARencana Tanggal: ${formData.date}%0ACatatan: ${formData.notes || '-'}`;
 

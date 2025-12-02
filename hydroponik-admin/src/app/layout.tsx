@@ -19,8 +19,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* SCRIPT MIDTRANS (SANDBOX) */}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning={true}
+      >
         <Script 
           src="https://app.sandbox.midtrans.com/snap/snap.js"
           data-client-key="SB-Mid-client-XXXXXXXXXXXXXXXX" // GANTI DENGAN CLIENT KEY KAMU!

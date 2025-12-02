@@ -13,11 +13,14 @@ export interface CartItem {
 interface CartState {
   items: CartItem[];
   
-  // --- TAMBAHAN BARU: TEMPAT KHUSUS BUY NOW ---
+  // Slot VIP (Beli Langsung)
   directCheckoutItem: CartItem | null; 
   setDirectCheckoutItem: (item: CartItem) => void;
   clearDirectCheckoutItem: () => void;
-  // -------------------------------------------
+
+  // --- FUNGSI YANG HILANG (TAMBAHKAN INI) ---
+  buyNow: (item: Omit<CartItem, 'quantity' | 'selected'>, quantity: number) => void;
+  // ------------------------------------------
 
   addItem: (item: Omit<CartItem, 'quantity' | 'selected'>, isSelected?: boolean) => void;
   removeItem: (id: number) => void;
@@ -34,12 +37,21 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
       
-      // 1. STATE KHUSUS BUY NOW
       directCheckoutItem: null,
       setDirectCheckoutItem: (item) => set({ directCheckoutItem: item }),
       clearDirectCheckoutItem: () => set({ directCheckoutItem: null }),
 
-      // 2. Logic Cart Biasa (Tetap Sama)
+      // Implementasi buyNow
+      buyNow: (newItem, quantity) => {
+        set({
+          directCheckoutItem: {
+            ...newItem,
+            quantity: quantity,
+            selected: true
+          }
+        });
+      },
+
       addItem: (newItem, isSelected = false) => {
         const currentItems = get().items;
         const existingItem = currentItems.find((item) => item.id === newItem.id);
@@ -92,8 +104,12 @@ export const useCartStore = create<CartState>()(
       },
 
       clearCart: () => set({ items: [] }),
+
       totalItems: () => get().items.reduce((total, item) => total + item.quantity, 0),
-      totalPrice: () => get().items.filter(item => item.selected).reduce((total, item) => total + (item.price * item.quantity), 0),
+      
+      totalPrice: () => get().items
+        .filter(item => item.selected)
+        .reduce((total, item) => total + (item.price * item.quantity), 0),
     }),
     { name: 'cart-storage' }
   )

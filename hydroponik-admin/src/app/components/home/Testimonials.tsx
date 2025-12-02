@@ -76,7 +76,7 @@ const Testimonials = async () => {
 
   return (
     // Background TETAP SAMA: bg-[#F4FFF8]
-    <section className="bg-[#F4FFF8] py-24 md:py-32 px-6 relative overflow-hidden">
+    <section className="bg-transparent py-24 md:py-32 px-6 relative overflow-hidden">
       <div className="container mx-auto max-w-7xl relative z-10">
         
         {/* Header Section */}

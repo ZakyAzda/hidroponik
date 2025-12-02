@@ -9,6 +9,8 @@ import Services from '@/app/components/home/Services';
 
 export default function PublicHomePage() {
   return (
+    // --- BACKGROUND UTAMA DISINI ---
+    <main className="bg-[#F4FFF8] relative overflow-hidden">
     <>
       <Hero />
       <Services />
@@ -18,5 +20,7 @@ export default function PublicHomePage() {
       <Testimonials />
       <Location />
        </>
-     );
-    }
+     
+    </main>
+  );
+}
