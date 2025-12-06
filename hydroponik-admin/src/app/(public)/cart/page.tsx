@@ -10,40 +10,52 @@ import { useRouter } from 'next/navigation';
 
 export default function CartPage() {
   const router = useRouter();
-  
-  // Ambil fungsi deselectAllItems
   const { items, removeItem, addItem, decreaseItem, toggleItem, totalPrice, deselectAllItems } = useCartStore();
   const { user, openLogin } = useAuthStore();
   
   const [mounted, setMounted] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false); // <--- SATPAM BARU
 
-  // --- PERUBAHAN UTAMA DI SINI ---
   useEffect(() => {
     setMounted(true);
     
-    // Reset semua centang saat halaman keranjang dibuka
-    // Jadi barang sisa 'Buy Now' yang gagal checkout tidak akan otomatis tercentang
-    deselectAllItems(); 
+    // 1. CEK LOGIN SAAT HALAMAN DIMUAT
+    const token = localStorage.getItem('access_token');
     
-  }, []); // Array kosong = Jalan sekali saat halaman dimuat
+    if (!token) {
+      // JIKA TIDAK ADA TOKEN:
+      router.replace('/'); // Tendang ke Home
+      
+      // Buka popup login (kasih delay dikit biar smooth)
+      setTimeout(() => {
+        openLogin();
+      }, 300);
+    } else {
+      // JIKA ADA TOKEN: Izinkan masuk
+      setIsAuthorized(true);
+      
+      // Reset checklist (Standard logic kita)
+      deselectAllItems(); 
+    }
+    
+  }, []);
 
   const handleToCheckout = () => {
-    if (!user) {
-      openLogin();
-      return;
-    }
-
     const selectedItems = items.filter(i => i.selected);
     if (selectedItems.length === 0) {
       alert("Pilih minimal 1 barang untuk lanjut.");
       return;
     }
-
     router.push('/checkout');
   };
 
-  if (!mounted) return <div className="min-h-screen bg-[#F4FFF8]"></div>;
+  // --- PROTEKSI TAMPILAN ---
+  // Jika belum mounted ATAU belum lolos satpam (isAuthorized), tampilkan loading kosong
+  if (!mounted || !isAuthorized) {
+    return <div className="min-h-screen bg-[#F4FFF8] flex items-center justify-center text-gray-400 text-sm">Memuat Keranjang...</div>;
+  }
 
+  // Tampilan Kosong
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-[#F4FFF8] pt-32 pb-20 px-6 flex flex-col items-center justify-center text-center">
@@ -68,25 +80,21 @@ export default function CartPage() {
 
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* --- KIRI: LIST ITEM --- */}
+          {/* LIST ITEM */}
           <div className="flex-1 space-y-4">
             {items.map((item) => (
               <div 
                 key={item.id} 
                 className={`p-4 rounded-2xl shadow-sm border flex gap-4 items-center transition-all duration-300 ${item.selected ? 'bg-white border-green-200 shadow-md' : 'bg-gray-50 border-gray-100 opacity-70'}`}
               >
-                
-                {/* Checkbox */}
                 <button onClick={() => toggleItem(item.id)} className="text-[#3E8467] hover:scale-110 transition-transform">
                   {item.selected ? <CheckSquare size={24} fill="#3E8467" className="text-white" /> : <Square size={24} className="text-gray-400" />}
                 </button>
 
-                {/* Gambar */}
                 <div className="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 relative border border-gray-100">
                   {item.imageUrl && <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />}
                 </div>
                 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-gray-800 line-clamp-1">{item.name}</h3>
                   <p className="text-[#3E8467] font-semibold text-sm mt-1">
@@ -94,7 +102,6 @@ export default function CartPage() {
                   </p>
                 </div>
 
-                {/* Actions */}
                 <div className="flex flex-col md:flex-row items-center gap-3">
                   <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
                     <button onClick={() => decreaseItem(item.id)} className="p-2 text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded-l-lg transition-colors"><Minus size={14} /></button>
@@ -109,7 +116,7 @@ export default function CartPage() {
             ))}
           </div>
 
-          {/* --- KANAN: RINGKASAN --- */}
+          {/* RINGKASAN */}
           <div className="w-full lg:w-[380px]">
             <div className="bg-white p-6 rounded-2xl shadow-lg border border-[#3E8467]/10 sticky top-28">
               <h3 className="text-lg font-bold text-gray-800 mb-4 pb-4 border-b border-gray-100">Ringkasan Belanja</h3>
@@ -137,7 +144,6 @@ export default function CartPage() {
               >
                 Lanjut ke Pembayaran <ArrowRight size={18} />
               </button>
-
             </div>
           </div>
 

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useCartStore } from '@/app/lib/useCartStore';
 
 interface User {
   name: string;
@@ -38,10 +39,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_data');
     
+    useCartStore.getState().clearCart();
     // Kosongkan state di aplikasi
     set({ token: null, user: null });
     
     // Refresh halaman agar bersih total
-    window.location.reload();
+    window.location.href='/';
   }
 }));

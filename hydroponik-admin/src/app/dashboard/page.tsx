@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Box, Book, ShoppingCart, User, LogOut, BarChart3, Settings, ChevronRight } from "lucide-react";
 import withAuth from "./withAuth";
 import api from "../lib/api";
+import { useAuthStore } from "@/store/authStore";
 
 // ... (Interface dan komponen StatCard, QuickActionCard tetap sama) ...
 interface UserProfile { name: string; email: string; role: string; }
@@ -59,6 +60,7 @@ function DashboardPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -80,8 +82,7 @@ function DashboardPage() {
   }, [router]);
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    router.push('/');
+    logout();
   };
 
   const handleNavigate = (path: string) => {
@@ -186,24 +187,6 @@ function DashboardPage() {
                 <span className="text-sm font-medium text-gray-900">{profile?.role}</span>
               </div>
             </div>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <Settings className="w-6 h-6 text-gray-700" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-900">Pengaturan Sistem</h4>
-                <p className="text-sm text-gray-500">Konfigurasi dan preferensi</p>
-              </div>
-            </div>
-            <button
-              onClick={() => handleNavigate('/dashboard/settings')}
-              className="w-full mt-4 px-4 py-2 bg-gray-800 hover:bg-black text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
-            >
-              <Settings className="w-4 h-4" />
-              <span>Buka Pengaturan</span>
-            </button>
           </div>
         </div>
       </main>

@@ -39,7 +39,7 @@ const Navbar = () => {
 
   const getBadgeColor = (type: string) => {
     switch (type) {
-      case 'produk': return 'bg-green-100 text-green-700';
+      case 'produk': return 'bg-green-100 text-green-700'; 
       case 'jasa': return 'bg-purple-100 text-purple-700';
       case 'artikel': return 'bg-blue-100 text-blue-700';
       default: return 'bg-gray-100 text-gray-700';
@@ -82,55 +82,10 @@ const Navbar = () => {
   useEffect(() => { if (isSearchOpen && searchInputRef.current) searchInputRef.current.focus(); }, [isSearchOpen]);
 
   // --- LOGIKA SEARCH ---
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      if (searchQuery.length > 2) {
-        setIsSearching(true);
-        try {
-          const keyword = searchQuery.toLowerCase();
-          const [productsRes, articlesRes, servicesRes] = await Promise.allSettled([
-            fetch('http://localhost:3000/products').then(res => res.json()),
-            fetch('http://localhost:3000/articles').then(res => res.json()),
-            fetch('http://localhost:3000/services').then(res => res.json())
-          ]);
-
-          let combinedResults: SearchResult[] = [];
-
-          // Helper process
-          const process = (res: any, type: any) => {
-             if (res.status === 'fulfilled' && Array.isArray(res.value)) {
-                return res.value.filter((i: any) => (i.name || i.title).toLowerCase().includes(keyword))
-                .slice(0, 2).map((i: any) => ({
-                   id: i.id, title: i.name || i.title, imageUrl: i.imageUrl, type, price: i.price, url: `/${type}/${i.id}`
-                }));
-             }
-             return [];
-          };
-
-          combinedResults = [
-             ...process(productsRes, 'produk'),
-             ...process(servicesRes, 'jasa'),
-             ...process(articlesRes, 'artikel')
-          ];
-          setResults(combinedResults);
-        } catch (error) { console.error(error); } finally { setIsSearching(false); }
-      } else { setResults([]); }
-    }, 500);
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/produk?q=${encodeURIComponent(searchQuery)}`);
-      setIsSearchOpen(false);
-    }
-  };
 
   // Fungsi Logout yang memanggil store
   const handleLogout = () => {
-    logout(); // Panggil fungsi dari store
-    // Optional: router.refresh() jika logout() di store belum melakukannya
+    logout(); // Panggil fungsi logout dari store
   };
 
   return (
@@ -166,18 +121,20 @@ const Navbar = () => {
            {/* Action Buttons */}
           <div className="flex items-center space-x-3">
             
-            {/* Search */}
-            <button onClick={() => setIsSearchOpen(true)} className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-[#70B398] hover:text-white transition-all shadow-sm hover:shadow-md group">
-              <Search className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors" />
-            </button>
-            
             {/* Cart */}
             <Link href="/cart">
               <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-[#70B398] hover:text-white transition-all shadow-md relative">
                 <ShoppingCart className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors" />
-                {mounted && cartCount > 0 && (
-                  <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full ring-2 ring-white animate-bounce">{cartCount}</span>
+                
+                {/* --- PERBAIKAN DISINI --- */}
+                {/* Hanya tampilkan badge jika: Mounted AND User Login AND Cart > 0 */}
+                {mounted && user && cartCount > 0 && (
+                  <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full ring-2 ring-white animate-bounce">
+                    {cartCount}
+                  </span>
                 )}
+                {/* ------------------------ */}
+                
               </button>
             </Link>
 

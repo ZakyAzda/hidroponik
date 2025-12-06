@@ -1,10 +1,49 @@
+"use client";
+
 /* eslint-disable @next/next/no-img-element */
-import React from 'react';
-import Link from 'next/link'; // <--- 1. Jangan lupa import Link
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Reveal } from '@/components/ui/Reveal';
-import { ArrowRight } from 'lucide-react'; // <--- 2. Import Icon Panah
+import { ArrowRight } from 'lucide-react';
 
 const About = () => {
+  // Array foto yang akan ditampilkan
+  const images = [
+    {
+      url: "/images/about.jpg",
+      alt: "Petani hidroponik"
+    },
+    {
+      url: "/images/about2.jpg",
+      alt: "Sayuran hidroponik segar"
+    },
+    {
+      url: "/images/about3.jpg",
+      alt: "Sistem hidroponik modern"
+    },
+    {
+      url: "/images/about4.jpg",
+      alt: "Tanaman hidroponik"
+    },
+    {
+      url: "/images/about5.jpg",
+      alt: "Petani muda hidroponik"
+    }
+  ];
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Auto slide setiap 5 detik
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => 
+        prevIndex === images.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 5000); // 5000ms = 5 detik
+
+    return () => clearInterval(interval);
+  }, [images.length]);
+
   return (
     <section className="bg-transparent pt-36 pb-16 px-6 overflow-hidden">
       <div className="container mx-auto max-w-7xl relative z-10">
@@ -23,16 +62,37 @@ const About = () => {
 
         <div className="grid md:grid-cols-2 gap-12 items-start md:items-center">
 
-          {/* Left Column: Image */}
+          {/* Left Column: Slideshow Image */}
           <div className="relative">
             <Reveal delay={300}>
               <div className="absolute inset-0 border-4 border-[#70B398] rounded-[24px] transform -translate-x-3 -translate-y-3 opacity-30 pointer-events-none hidden md:block" />
               <div className="w-full h-80 md:h-[400px] rounded-3xl overflow-hidden shadow-2xl relative group bg-white">
-                <img
-                  src="https://images.unsplash.com/photo-1517457210348-1cd772ce8bd8?w=800&auto=format&fit=crop"
-                  alt="Petani hidroponik"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                />
+                {images.map((image, index) => (
+                  <img
+                    key={index}
+                    src={image.url}
+                    alt={image.alt}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+                      index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  />
+                ))}
+                
+                {/* Indikator Dots */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+                  {images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        index === currentImageIndex 
+                          ? 'bg-white w-8' 
+                          : 'bg-white/50 hover:bg-white/75'
+                      }`}
+                      aria-label={`Gambar ${index + 1}`}
+                    />
+                  ))}
+                </div>
               </div>
             </Reveal>
           </div>
@@ -62,7 +122,6 @@ const About = () => {
               </div>
             </Reveal>
 
-            {/* --- 3. INI TOMBOL BARU NYA LEK --- */}
             <Reveal delay={700}>
               <div className="pt-6">
                 <Link 
@@ -74,7 +133,6 @@ const About = () => {
                 </Link>
               </div>
             </Reveal>
-            {/* ----------------------------------- */}
 
           </div>
         </div>

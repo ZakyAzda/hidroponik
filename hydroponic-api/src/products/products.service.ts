@@ -10,7 +10,17 @@ export class ProductsService {
   // READ: Mengambil semua produk (dengan filter kategori opsional)
   findAll(categoryId?: number) {
     return this.prisma.product.findMany({
-      where: categoryId ? { categoryId: categoryId } : {},
+      where: {
+        AND: [
+          categoryId ? { categoryId: categoryId } : {},
+
+          {
+            stock: {
+              gt: 4, // Hanya produk dengan stok > 0
+          },
+        },
+        ],
+      },
       // --- TAMBAHKAN BARIS INI ---
       include: {
         category: true, // <-- INI KUNCINYA! Agar nama kategori ikut terkirim

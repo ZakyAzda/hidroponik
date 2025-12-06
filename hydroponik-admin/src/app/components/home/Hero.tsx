@@ -4,7 +4,7 @@ import React from 'react';
 
 const Hero = () => {
   return (
-    <section className="relative bg-transparent py-20 px-6 overflow-hidden"> 
+    <section className="relative bg-transparent min-h-screen flex items-center py-20 px-6 overflow-hidden"> 
       <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center max-w-6xl">
         
         {/* Left Column: Text Content */}
@@ -54,7 +54,7 @@ const Hero = () => {
           <div className="flex-1 h-[70%] bg-gradient-to-br from-[#70B398] to-[#9ECDB5] overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 animate-slide-in-left opacity-0 animation-delay-200 group">
             <img 
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-              src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=400&h=600&fit=crop" 
+              src="/images/hero1.jpg" 
               alt="Hydroponic farming illustration" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -67,17 +67,16 @@ const Hero = () => {
             <div className="flex-1 bg-gradient-to-br from-[#70B398] to-[#9ECDB5] overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 animate-slide-in-right opacity-0 animation-delay-300 group">
               <img 
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                src="https://images.unsplash.com/photo-1560493676-04071c5f467b?w=300&h=250&fit=crop" 
+                src="/images/hero2.jpg" 
                 alt="Fresh hydroponic vegetables" 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             </div>
-
             {/* Bottom Image (Animated) */}
             <div className="flex-1 bg-gradient-to-br from-[#70B398] to-[#9ECDB5] overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 animate-slide-in-right opacity-0 animation-delay-400 group">
               <img 
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                src="https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=300&h=250&fit=crop" 
+                src="/images/hero3.jpg" 
                 alt="Hydroponic lettuce growing" 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
