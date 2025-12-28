@@ -9,15 +9,7 @@ const Hero = () => {
         
         {/* Left Column: Text Content */}
         <div className="space-y-6">
-          {/* Animated Badge */}
-          <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md animate-fade-in-up opacity-0 animation-delay-100">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#70B398] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-[#70B398]"></span>
-            </span>
-            <span className="text-sm font-semibold text-gray-700">Hidroponik Modern</span>
-          </div>
-
+         
           {/* Animated Heading */}
           <h1 className="text-4xl md:text-5xl font-bold text-black leading-tight animate-fade-in-up opacity-0 animation-delay-200">
             🌱 Mari belajar  <br />

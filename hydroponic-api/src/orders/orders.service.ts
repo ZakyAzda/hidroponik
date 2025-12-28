@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma.service';
 import { Product, PaymentStatus, PaymentMethod } from '@prisma/client';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import * as crypto from 'crypto'; 
 
 // 1. Import Midtrans Client
 const midtransClient = require('midtrans-client');
