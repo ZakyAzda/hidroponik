@@ -12,7 +12,7 @@ const navItems = [
   { href: '/dashboard/categories/services', label: 'Kategori Jasa', icon: Tags }, // Tambahan menu kategori
 ];
 
-export function BookingSidebar() {
+export default function BookingSidebar() {
   const pathname = usePathname();
   return (
     <aside className="hidden w-72 flex-col border-r bg-white p-4 lg:flex min-h-screen">
