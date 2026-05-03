@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <Script 
           src="https://app.sandbox.midtrans.com/snap/snap.js"
-          data-client-key="SB-Mid-client-XXXXXXXXXXXXXXXX" // GANTI DENGAN CLIENT KEY KAMU!
+          data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY} // GANTI DENGAN CLIENT KEY KAMU!
           strategy="lazyOnload"
         />
         

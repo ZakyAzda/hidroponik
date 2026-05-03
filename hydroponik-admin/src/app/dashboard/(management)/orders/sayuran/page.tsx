@@ -1,17 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import withAuth from '../../../withAuth';
 import api from '../../../../lib/api';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Eye, Trash2, Leaf, Calendar, User, Hash, ShoppingCart, AlertCircle } from 'lucide-react';
-// --- 1. IMPORT DIALOG & FORM EDIT ---
+import { Eye, Trash2, Leaf, Calendar, User, Hash, ShoppingCart, AlertCircle, X, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { OrderEditForm } from '@/components/ui/OrderEditForm';
 
-// Tipe data
+// --- IMPORT HELPER PDF ---
+// Pastikan path ini sesuai dengan lokasi file pdfGenerator.ts kamu
+import { generateOrderPDF } from '../../../../lib/pdfGenerator'; 
+
 interface Order {
   id: number;
   createdAt: string;
@@ -25,34 +26,42 @@ function SayuranOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // --- 2. STATE UNTUK EDITING ---
+  // --- STATE FILTER ---
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  // --------------------
+
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
 
-  // Pastikan nama kategori ini SAMA PERSIS dengan nama di database Anda
   const KATEGORI_SAYURAN = "Sayuran & Melon";
 
-  const fetchOrders = async () => {
-    try {
-      // --- PERBAIKAN DI SINI ---
-      // Gunakan encodeURIComponent agar tanda '&' tidak memutus URL
-      const encodedCategory = encodeURIComponent(KATEGORI_SAYURAN);
-      const response = await api.get(`/orders/admin/all?category=${encodedCategory}`); 
+  // --- FETCH ORDERS ---
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
       
-      // Debugging: Cek apa yang didapat
-      console.log("Order Sayur:", response.data);
+      // Filter Kategori
+      params.append('category', KATEGORI_SAYURAN); 
       
-      setOrders(response.data);
-    } catch (error) { 
-      console.error('Gagal mengambil data pesanan:', error); 
-    } 
-    finally { 
-      setLoading(false); 
-    }
-  };
+      // Filter Status & Tanggal
+      if (filterStatus !== 'all') params.append('status', filterStatus);
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const response = await api.get(`/orders/admin/all?${params.toString()}`);
+      setOrders(response.data);
+    } catch (error) { 
+      console.error('Gagal mengambil data pesanan:', error); 
+    } finally { 
+      setLoading(false); 
+    }
+  }, [filterStatus, startDate, endDate]); 
 
   useEffect(() => { 
     fetchOrders(); 
-  }, []);
+  }, [fetchOrders]);
 
   const handleDelete = async (orderId: number) => {
     if (confirm('Anda yakin ingin menghapus pesanan ini?')) {
@@ -65,10 +74,27 @@ function SayuranOrdersPage() {
     }
   };
 
-  // --- 3. FUNGSI CALLBACK SETELAH EDIT SELESAI ---
   const handleEditFinished = () => {
-    setEditingOrder(null); // Tutup popup
-    fetchOrders(); // Refresh data
+    setEditingOrder(null);
+    fetchOrders();
+  };
+
+  const resetFilter = () => {
+    setFilterStatus('all');
+    setStartDate('');
+    setEndDate('');
+  };
+
+  // --- HANDLER DOWNLOAD PDF ---
+  const handleDownloadPDF = () => {
+    generateOrderPDF({
+      title: 'Laporan Pesanan Sayuran & Melon',
+      orders: orders,
+      startDate: startDate,
+      endDate: endDate,
+      filterStatus: filterStatus,
+      themeColor: [22, 163, 74] // WARNA HIJAU
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -82,7 +108,7 @@ function SayuranOrdersPage() {
     return statusMap[status.toLowerCase()] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
-  if (loading) { 
+  if (loading && orders.length === 0) { 
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -117,7 +143,7 @@ function SayuranOrdersPage() {
           </div>
         </div>
 
-       {/* Stats Cards - 5 Kolom Sejajar */}
+       {/* Stats Cards - KOMPLIT SEMUA COMPONENT */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           
           {/* Card 1: Total Transaksi */}
@@ -196,15 +222,69 @@ function SayuranOrdersPage() {
               </div>
             </div>
           </div>
-
         </div>
+
+        {/* --- SECTION FILTER & DOWNLOAD --- */}
+        <div className="flex flex-col md:flex-row gap-3 items-end mb-6 bg-white p-4 rounded-lg border border-gray-200">
+            <div className="w-full md:w-auto">
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Status</label>
+                <select 
+                    value={filterStatus} 
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="w-full md:w-[180px] p-2 text-sm border rounded-md"
+                >
+                    <option value="all">Semua</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Dikemas</option>
+                    <option value="shipped">Diperjalanan</option>
+                    <option value="completed">Selesai</option>
+                    <option value="cancelled">Dibatalkan</option>
+                </select>
+            </div>
+            <div className="w-full md:w-auto">
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Dari</label>
+                <input 
+                    type="date" 
+                    value={startDate} 
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full p-2 text-sm border rounded-md"
+                />
+            </div>
+            <div className="w-full md:w-auto">
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Sampai</label>
+                <input 
+                    type="date" 
+                    value={endDate} 
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full p-2 text-sm border rounded-md"
+                />
+            </div>
+
+            {/* Tombol Reset Filter */}
+            {(filterStatus !== 'all' || startDate || endDate) && (
+                <Button variant="ghost" size="sm" onClick={resetFilter} className="text-red-500 hover:text-red-600">
+                    <X className="w-4 h-4 mr-1"/> Reset
+                </Button>
+            )}
+
+            {/* --- TOMBOL UNDUH LAPORAN --- */}
+            <Button 
+                onClick={handleDownloadPDF} 
+                className="ml-auto bg-gray-900 hover:bg-gray-800 text-white"
+            >
+                <Download className="w-4 h-4 mr-2" />
+                Unduh Laporan
+            </Button>
+            {/* --------------------------- */}
+        </div>
+
         {/* Table Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {orders.length === 0 ? (
             <div className="p-12 text-center">
               <Leaf className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Belum ada pesanan</h3>
-              <p className="text-gray-500">Pesanan sayuran akan muncul di sini setelah pelanggan melakukan pembelian</p>
+              <p className="text-gray-500">Coba ubah filter atau tanggal pencarian Anda.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -289,7 +369,7 @@ function SayuranOrdersPage() {
                       <TableCell>
                         <div className="flex items-center justify-end gap-2">
                           
-                          {/* --- 4. TOMBOL EDIT DENGAN POPUP DI SINI --- */}
+                          {/* --- TOMBOL EDIT DENGAN POPUP --- */}
                           <Dialog open={editingOrder?.id === order.id} onOpenChange={(isOpen) => !isOpen && setEditingOrder(null)}>
                             <DialogTrigger asChild>
                               <Button 
@@ -305,13 +385,12 @@ function SayuranOrdersPage() {
                               <DialogHeader>
                                 <DialogTitle>Kelola Pesanan Sayur #{order.id}</DialogTitle>
                               </DialogHeader>
-                              {/* Form Edit */}
                               {editingOrder && (
                                 <OrderEditForm order={editingOrder} onFinished={handleEditFinished} />
                               )}
                             </DialogContent>
                           </Dialog>
-                          {/* ------------------------------------------ */}
+                          {/* ---------------------------------- */}
 
                           <Button 
                             variant="ghost" 

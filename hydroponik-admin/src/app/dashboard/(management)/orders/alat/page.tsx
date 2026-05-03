@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import withAuth from '../../../withAuth'; // Sesuaikan path jika perlu
-import api from '../../../../lib/api'; // Sesuaikan path jika perlu
+import { useEffect, useState, useCallback } from 'react';
+import withAuth from '../../../withAuth'; 
+import api from '../../../../lib/api'; 
 import {
   Table,
   TableBody,
@@ -12,10 +12,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Eye, Trash2, Package, Calendar, User, Hash, ShoppingCart, AlertCircle, Truck, CheckCircle } from 'lucide-react';
-// Import Dialog & Form Edit
+import { Eye, Trash2, Package, Calendar, User, Hash, ShoppingCart, AlertCircle, Truck, CheckCircle, X, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { OrderEditForm } from '@/components/ui/OrderEditForm'; // Pastikan path ini benar
+import { OrderEditForm } from '@/components/ui/OrderEditForm'; 
+
+// --- IMPORT HELPER PDF ---
+// Pastikan path ini sesuai dengan lokasi file pdfGenerator.ts kamu
+import { generateOrderPDF } from '../../../../lib/pdfGenerator'; 
 
 interface Order {
   id: number;
@@ -30,24 +33,39 @@ function AlatOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // State untuk Popup Edit
+  // --- STATE FILTER ---
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  // ------------------------------
+
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
 
-  const fetchOrders = async () => {
+  // --- FETCH ORDERS ---
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
     try {
-      // Anda bisa sesuaikan query param category jika ingin filter spesifik
-      const response = await api.get('/orders/admin/all?category=Alat Hidroponik'); 
+      const params = new URLSearchParams();
+      // Kategori tetap hardcode
+      params.append('category', 'Alat Hidroponik'); 
+      
+      // Masukkan filter jika ada
+      if (filterStatus !== 'all') params.append('status', filterStatus);
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const response = await api.get(`/orders/admin/all?${params.toString()}`);
       setOrders(response.data);
     } catch (error) {
       console.error('Gagal mengambil data pesanan:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, startDate, endDate]); 
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
 
   const handleDelete = async (orderId: number) => {
     if (confirm('Anda yakin ingin menghapus pesanan ini?')) {
@@ -60,10 +78,27 @@ function AlatOrdersPage() {
     }
   };
 
-  // Fungsi Callback setelah edit berhasil
   const handleEditFinished = () => {
-    setEditingOrder(null); // Tutup dialog
-    fetchOrders(); // Refresh data
+    setEditingOrder(null); 
+    fetchOrders(); 
+  };
+
+  const resetFilter = () => {
+    setFilterStatus('all');
+    setStartDate('');
+    setEndDate('');
+  };
+
+  // --- HANDLER DOWNLOAD PDF ---
+  const handleDownloadPDF = () => {
+    generateOrderPDF({
+      title: 'Laporan Pesanan Alat & Nutrisi', // Judul khusus Alat
+      orders: orders,
+      startDate: startDate,
+      endDate: endDate,
+      filterStatus: filterStatus,
+      themeColor: [33, 33, 33] // WARNA HITAM/DARK GREY (Beda dengan Sayur)
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -77,7 +112,7 @@ function AlatOrdersPage() {
     return statusMap[status.toLowerCase()] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
-  if (loading) {
+  if (loading && orders.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -110,7 +145,7 @@ function AlatOrdersPage() {
           </div>
         </div>
 
-        {/* Stats Cards - 5 Kolom Sejajar */}
+        {/* Stats Cards - LENGKAP 5 KARTU */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           
           {/* Card 1: Total Transaksi */}
@@ -158,7 +193,7 @@ function AlatOrdersPage() {
             </div>
           </div>
 
-          {/* Card 4: Diperjalanan (SHIPPED) - INI YANG BARU DITAMBAHKAN */}
+          {/* Card 4: Diperjalanan */}
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
@@ -187,7 +222,60 @@ function AlatOrdersPage() {
               </div>
             </div>
           </div>
+        </div>
 
+        {/* --- SECTION FILTER & DOWNLOAD --- */}
+        <div className="flex flex-col md:flex-row gap-3 items-end mb-6 bg-white p-4 rounded-lg border border-gray-200">
+            <div className="w-full md:w-auto">
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Status</label>
+                <select 
+                    value={filterStatus} 
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="w-full md:w-[180px] p-2 text-sm border rounded-md"
+                >
+                    <option value="all">Semua</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Dikemas</option>
+                    <option value="shipped">Diperjalanan</option>
+                    <option value="completed">Selesai</option>
+                    <option value="cancelled">Dibatalkan</option>
+                </select>
+            </div>
+            <div className="w-full md:w-auto">
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Dari</label>
+                <input 
+                    type="date" 
+                    value={startDate} 
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full p-2 text-sm border rounded-md"
+                />
+            </div>
+            <div className="w-full md:w-auto">
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Sampai</label>
+                <input 
+                    type="date" 
+                    value={endDate} 
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full p-2 text-sm border rounded-md"
+                />
+            </div>
+
+            {/* Tombol Reset */}
+            {(filterStatus !== 'all' || startDate || endDate) && (
+                <Button variant="ghost" size="sm" onClick={resetFilter} className="text-red-500 hover:text-red-600">
+                    <X className="w-4 h-4 mr-1"/> Reset
+                </Button>
+            )}
+
+            {/* --- TOMBOL UNDUH LAPORAN --- */}
+            <Button 
+                onClick={handleDownloadPDF} 
+                className="ml-auto bg-black hover:bg-gray-800 text-white"
+            >
+                <Download className="w-4 h-4 mr-2" />
+                Unduh Laporan
+            </Button>
+            {/* --------------------------- */}
         </div>
 
         {/* Table Section */}
@@ -279,14 +367,12 @@ function AlatOrdersPage() {
                               <DialogHeader>
                                 <DialogTitle>Kelola Pesanan #{order.id}</DialogTitle>
                               </DialogHeader>
-                              {/* Panggil Form Edit */}
                               {editingOrder && (
                                 <OrderEditForm order={editingOrder} onFinished={handleEditFinished} />
                               )}
                             </DialogContent>
                           </Dialog>
-                          {/* --------------------------- */}
-
+                          
                           <Button 
                             variant="ghost" 
                             size="sm"

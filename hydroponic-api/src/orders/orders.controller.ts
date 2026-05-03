@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Req, Get, Param, ParseIntPipe, Patch, Delete } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Get, Param, ParseIntPipe, Patch, Delete, } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -59,8 +59,14 @@ export class OrdersController {
 
   @Get('admin/all')
   @UseGuards(AuthGuard)
-  findAllForAdmin(@Query('category') categoryName?: string) {
-    return this.ordersService.findAllForAdmin(categoryName);
+  findAllForAdmin(
+    @Query('category') categoryName?: string,
+    @Query('status') status?: string,      // Tambahan baru
+    @Query('startDate') startDate?: string, // Tambahan baru
+    @Query('endDate') endDate?: string,     // Tambahan baru
+  ) {
+    // Kirim semua parameter ke service
+    return this.ordersService.findAllForAdmin(categoryName, status, startDate, endDate);
   }
 
   @Post('notification')

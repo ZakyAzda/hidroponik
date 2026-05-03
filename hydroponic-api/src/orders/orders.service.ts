@@ -221,19 +221,56 @@ export class OrdersService {
   // =================================================================
   // 5. ADMIN FEATURES
   // =================================================================
-  findAllForAdmin(categoryName?: string) {
-    return this.prisma.order.findMany({
-      where: categoryName ? {
-        items: {
-          some: {
-            product: {
-              category: {
-                name: categoryName
-              }
+  findAllForAdmin(
+    categoryName?: string,
+    status?: string,
+    startDate?: string,
+    endDate?: string
+  ) {
+    // 1. Siapkan object Where kosong
+    const whereClause: any = {};
+
+    // 2. Filter Kategori (Jika ada)
+    if (categoryName) {
+      whereClause.items = {
+        some: {
+          product: {
+            category: {
+              name: categoryName
             }
           }
         }
-      } : {},
+      };
+    }
+
+    // 3. Filter Status (Jika ada & bukan 'all')
+    if (status && status !== 'all') {
+      // Frontend mengirim huruf kecil (pending), DB biasanya huruf besar (PENDING)
+      // Kita ubah ke Uppercase agar cocok
+      whereClause.status = status.toUpperCase(); 
+    }
+
+    // 4. Filter Tanggal (Range)
+    if (startDate || endDate) {
+      whereClause.createdAt = {};
+
+      if (startDate) {
+        // gte = Greater Than or Equal (Lebih dari atau sama dengan tanggal mulai)
+        whereClause.createdAt.gte = new Date(startDate);
+      }
+
+      if (endDate) {
+        // lte = Less Than or Equal (Kurang dari atau sama dengan tanggal akhir)
+        // PENTING: Kita set jam ke 23:59:59 agar transaksi di hari terakhir tetap masuk
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        whereClause.createdAt.lte = end;
+      }
+    }
+
+    // 5. Eksekusi Query Prisma
+    return this.prisma.order.findMany({
+      where: whereClause, // Masukkan logika filter yang sudah dibuat di atas
       include: {
         user: true,
         payment: true,
